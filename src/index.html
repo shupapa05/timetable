@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전담시간표</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./drag-fix.css">
 </head>
 <body>
   <main class="app">
@@ -19,14 +20,13 @@
         <button id="saveBtn">설정 저장</button>
         <button id="exportConfigBtn">설정 내보내기</button>
         <button id="importConfigBtn">설정 가져오기</button>
-        <button id="sampleConfigBtn">&#xC0D8;&#xD50C; &#xBD88;&#xB7EC;&#xC624;&#xAE30;</button>
-        <button id="resetConfigBtn" class="danger-soft">&#xCD08;&#xAE30;&#xD654;</button>
+        <button id="sampleConfigBtn">샘플 불러오기</button>
+        <button id="resetConfigBtn" class="danger-soft">초기화</button>
         <button id="excelSaveBtn">엑셀 저장</button>
       </div>
     </header>
 
-    
-<section id="schoolProfileBar" class="profile-strip">
+    <section id="schoolProfileBar" class="profile-strip">
       <label>
         <span>학교명</span>
         <input id="schoolNameInput" type="text" placeholder="예: 행복초등학교">
@@ -198,6 +198,3 @@
   <script type="module" src="./renderer.js"></script>
 </body>
 </html>
-
-
-
