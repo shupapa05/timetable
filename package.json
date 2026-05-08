@@ -1,0 +1,48 @@
+{
+  "name": "teacher-timetable-desktop",
+  "version": "0.1.0",
+  "description": "Elementary teacher and special room timetable desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win",
+    "dist:portable": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win portable"
+  },
+  "build": {
+    "appId": "kr.school.jeondam-timetable",
+    "productName": "전담시간표프로그램",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "전담시간표프로그램-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "전담시간표프로그램"
+    },
+    "npmRebuild": false
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "author": "School"
+}
