@@ -1,0 +1,24 @@
+/* 수동 배치 화면: 아래쪽 시간표를 수정할 때도 왼쪽 수업 카드가 화면에 남도록 고정 */
+.manual-side-panel {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.manual-lesson-bank {
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+.manual-lesson-card {
+  position: relative;
+  z-index: 5;
+}
+
+.manual-lesson-card:active,
+.manual-lesson-card.dragging {
+  z-index: 999;
+}
