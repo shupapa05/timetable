@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전담시간표</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">초등학교</div>
+        <h1>전담·특별실 시간표</h1>
+      </div>
+      <div class="actions">
+        <span id="autoSaveStatus" class="autosave-status">자동 저장 준비</span>
+        <button id="themeToggleBtn" class="theme-toggle" type="button">다크 모드</button>
+        <button id="saveBtn">설정 저장</button>
+        <button id="exportConfigBtn">설정 내보내기</button>
+        <button id="importConfigBtn">설정 가져오기</button>
+        <button id="sampleConfigBtn">&#xC0D8;&#xD50C; &#xBD88;&#xB7EC;&#xC624;&#xAE30;</button>
+        <button id="resetConfigBtn" class="danger-soft">&#xCD08;&#xAE30;&#xD654;</button>
+        <button id="excelSaveBtn">엑셀 저장</button>
+      </div>
+    </header>
+
+    
+<section id="schoolProfileBar" class="profile-strip">
+      <label>
+        <span>학교명</span>
+        <input id="schoolNameInput" type="text" placeholder="예: 행복초등학교">
+      </label>
+      <label>
+        <span>학년도</span>
+        <input id="schoolYearInput" type="number" min="2000" max="2100">
+      </label>
+      <button id="profileSaveBtn" type="button">학교/연도 저장</button>
+      <label class="profile-select-wrap">
+        <span>저장된 설정</span>
+        <select id="profileSelect"></select>
+      </label>
+      <button id="profileLoadBtn" type="button">불러오기</button>
+      <button id="profileRenameBtn" type="button">이름변경</button>
+      <button id="profileDeleteBtn" type="button" class="danger-soft">삭제</button>
+    </section>
+
+    <section class="summary">
+      <div><span>전담</span><strong id="teacherCount">0명</strong></div>
+      <div><span>특별실</span><strong id="roomCount">0개</strong></div>
+      <div><span>미배치</span><strong id="unplacedCount">0건</strong></div>
+    </section>
+
+    <nav class="app-tabs" aria-label="화면 전환">
+      <button class="tab-button active" type="button" data-tab-target="basicTab">기본 설정</button>
+      <button class="tab-button" type="button" data-tab-target="teacherTab">전담 배정</button>
+      <button class="tab-button" type="button" data-tab-target="excludeTab">제외시간</button>
+      <button class="tab-button" type="button" data-tab-target="roomAssignTab">특별실 배정</button>
+      <button class="tab-button" type="button" data-tab-target="timetableTab">시간표 보기</button>
+    </nav>
+
+    <section id="basicTab" class="tab-panel active">
+      <div class="basic-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>학급 수</h2>
+            <p class="panel-note">학년별 학급 수를 먼저 입력합니다.</p>
+          </div>
+          <div id="gradeArea" class="grade-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head split">
+            <div>
+              <h2>특별실</h2>
+              <p class="panel-note">과학실, 영어실, 체육관처럼 시간표에 반영할 특별실을 등록합니다.</p>
+            </div>
+            <button id="addRoomBtn" class="small">추가</button>
+          </div>
+          <div id="roomArea" class="stack"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="teacherTab" class="tab-panel">
+      <div class="panel">
+        <div class="panel-head split">
+          <div>
+            <h2>전담 배정</h2>
+            <p class="panel-note">전담별로 과목을 여러 개 추가하고, 과목마다 담당 학급을 선택합니다.</p>
+          </div>
+          <button id="addTeacherBtn" class="small">전담 추가</button>
+        </div>
+        <div id="teacherArea" class="teacher-area"></div>
+      </div>
+    </section>
+
+    <section id="excludeTab" class="tab-panel">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>제외시간 설정</h2>
+          <p class="panel-note">공통 제외시간과 전담·특별실별 제외시간을 설정합니다.</p>
+        </div>
+        <div id="excludeArea" class="settings-block"></div>
+      </div>
+    </section>
+
+    <section id="roomAssignTab" class="tab-panel">
+      <div class="panel">
+        <div class="panel-head split">
+          <div>
+            <h2>특별실 배정</h2>
+            <p class="panel-note">전담과 별도로 특별실을 쓰는 학급을 선택합니다.</p>
+          </div>
+        </div>
+        <div id="roomAssignmentArea" class="settings-block"></div>
+      </div>
+    </section>
+
+    <section id="timetableTab" class="tab-panel">
+      <div class="viewer-grid">
+        <div class="panel output-panel">
+          <div class="panel-head split">
+            <div>
+              <h2>시간표 작업</h2>
+              <p class="panel-note">설정을 마친 뒤 시간표를 작성하고 결과를 확인합니다.</p>
+            </div>
+            <div class="viewer-actions">
+              <button id="buildBtn" class="primary">시간표 작성</button>
+              <button id="manualBlankBtn" type="button">빈 수동판</button>
+              <button id="weeklyHoursBtn">주당 수업시수</button>
+              <button id="printPreviewBtn">출력용 보기</button>
+              <button id="directPrintBtn">바로 출력</button>
+            </div>
+          </div>
+          <div id="candidateArea" class="candidate-area"></div>
+        </div>
+
+        <div class="manual-layout unified-manual-layout">
+          <div class="panel manual-side-panel">
+            <div class="panel-head">
+              <h2>수업 카드</h2>
+              <p class="panel-note">남은 수업을 전담시간표로 끌어 놓습니다.</p>
+            </div>
+            <div class="manual-guide">
+              <span class="hint-ok">가능</span>
+              <span class="hint-warn">주의</span>
+              <span class="hint-bad">불가</span>
+            </div>
+            <div id="manualLessonBank" class="manual-lesson-bank empty">빈 수동판을 만들거나 자동안을 가져오면 수업 카드가 표시됩니다.</div>
+          </div>
+
+          <div class="panel output-panel manual-main-panel">
+            <div class="panel-head split">
+              <div>
+                <h2>전담시간표</h2>
+              </div>
+              <div class="viewer-tools">
+                <label class="tone-control">
+                  <span>수정 전담</span>
+                  <select id="editTeacherSelect"></select>
+                </label>
+                <button id="clearTeacherBoardBtn" type="button" class="small">선택 전담 빈판</button>
+                <button id="validateViewerBtn" type="button" class="small">검사</button>
+              </div>
+            </div>
+            <div id="warningArea"></div>
+            <div id="timetableArea" class="timetable-wrap empty">빈 수동판을 만들거나 시간표 작성을 누르면 전담시간표가 표시됩니다.</div>
+          </div>
+        </div>
+
+        <div class="manual-subgrid">
+          <div class="panel output-panel">
+            <div class="panel-head">
+              <h2>특별실 시간표</h2>
+            </div>
+            <div id="roomTimetableArea" class="room-timetable-wrap empty">시간표 작성 후 특별실별 시간표가 표시됩니다.</div>
+          </div>
+
+          <div class="panel output-panel">
+            <div class="panel-head">
+              <h2>남은 수업</h2>
+            </div>
+            <div id="unplacedArea" class="unplaced-list">빈 수동판을 만들거나 시간표 작성 후 확인할 수 있습니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="quick-dock" aria-label="빠른 작업">
+      <span id="quickDockStatus" class="quick-dock-status">자동 저장 준비</span>
+      <button id="quickSaveBtn" type="button">설정 저장</button>
+      <button id="quickBuildBtn" type="button" class="primary">시간표 작성</button>
+      <button id="quickExcelBtn" type="button">엑셀 저장</button>
+    </div>
+  </main>
+
+  <script type="module" src="./renderer.js"></script>
+</body>
+</html>
+
+
+
