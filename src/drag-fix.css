@@ -1,21 +1,29 @@
-/* 수동 배치 화면: 아래쪽 시간표를 수정할 때도 왼쪽 수업 카드가 화면에 남도록 고정 */
+/* 수동 배치 화면: 화면을 아래로 내려도 왼쪽 수업 카드가 항상 보이도록 고정 */
 #timetableTab .manual-layout {
-  align-items: start;
+  display: block;
+  position: relative;
 }
 
-/* .panel 기본값의 overflow:hidden 때문에 sticky가 풀리는 현상을 방지 */
 #timetableTab .manual-side-panel {
-  position: sticky !important;
-  top: 76px;
-  align-self: start;
-  max-height: calc(100vh - 92px);
-  overflow: visible !important;
-  z-index: 50;
+  position: fixed !important;
+  top: 96px;
+  left: max(24px, calc((100vw - 1480px) / 2 + 24px));
+  width: 300px;
+  max-height: calc(100vh - 120px);
+  overflow: hidden !important;
+  z-index: 1000;
 }
 
-/* 수업 카드 목록만 내부 스크롤 */
+#timetableTab .manual-main-panel {
+  margin-left: 318px;
+}
+
+#timetableTab .manual-subgrid {
+  margin-left: 318px;
+}
+
 #timetableTab .manual-side-panel .manual-lesson-bank {
-  max-height: calc(100vh - 230px);
+  max-height: calc(100vh - 260px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -23,7 +31,7 @@
 #timetableTab .manual-side-panel .manual-bank-head {
   position: sticky;
   top: 0;
-  z-index: 60;
+  z-index: 1001;
 }
 
 #timetableTab .manual-lesson-card {
@@ -33,5 +41,22 @@
 
 #timetableTab .manual-lesson-card:active,
 #timetableTab .manual-lesson-card.dragging {
-  z-index: 999;
+  z-index: 2000;
+}
+
+@media (max-width: 980px) {
+  #timetableTab .manual-side-panel {
+    position: static !important;
+    width: auto;
+    max-height: none;
+  }
+
+  #timetableTab .manual-main-panel,
+  #timetableTab .manual-subgrid {
+    margin-left: 0;
+  }
+
+  #timetableTab .manual-side-panel .manual-lesson-bank {
+    max-height: 420px;
+  }
 }
