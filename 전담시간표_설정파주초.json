@@ -1,0 +1,256 @@
+{
+  "type": "전담시간표 설정",
+  "savedAt": "2026-05-08T10:44:57.057Z",
+  "config": {
+    "school": {
+      "maxPeriods": 6,
+      "name": "파주초등학교",
+      "year": 2026
+    },
+    "gradeClasses": [
+      {
+        "grade": 1,
+        "classCount": 1
+      },
+      {
+        "grade": 2,
+        "classCount": 1
+      },
+      {
+        "grade": 3,
+        "classCount": 1
+      },
+      {
+        "grade": 4,
+        "classCount": 1
+      },
+      {
+        "grade": 5,
+        "classCount": 2
+      },
+      {
+        "grade": 6,
+        "classCount": 1
+      }
+    ],
+    "rooms": [
+      {
+        "name": "과학실",
+        "capacity": 1
+      },
+      {
+        "name": "영어실",
+        "capacity": 1
+      },
+      {
+        "name": "체육관",
+        "capacity": 1
+      },
+      {
+        "name": "모둠학습실",
+        "capacity": 1
+      }
+    ],
+    "teachers": [
+      {
+        "teacherCode": "전담1",
+        "teacherName": "전담1",
+        "subject": "즐거운 생활",
+        "roomName": "과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "1-1",
+          "2-1"
+        ]
+      },
+      {
+        "teacherCode": "전담1",
+        "teacherName": "전담1",
+        "subject": "과학",
+        "roomName": "과학실",
+        "weeklyHours": 3,
+        "roomHours": 3,
+        "blockPattern": "2+1",
+        "assignedClasses": [
+          "3-1",
+          "4-1",
+          "5-1",
+          "5-2",
+          "6-1"
+        ]
+      },
+      {
+        "teacherCode": "전담1",
+        "teacherName": "전담1",
+        "subject": "도덕",
+        "roomName": "과학실",
+        "weeklyHours": 1,
+        "roomHours": 1,
+        "blockPattern": "1",
+        "assignedClasses": [
+          "4-1",
+          "6-1"
+        ]
+      },
+      {
+        "teacherCode": "전담2",
+        "teacherName": "전담2",
+        "subject": "체육",
+        "roomName": "체육관",
+        "weeklyHours": 3,
+        "roomHours": 1,
+        "blockPattern": "2+1",
+        "assignedClasses": [
+          "3-1",
+          "4-1",
+          "5-1",
+          "5-2",
+          "6-1"
+        ]
+      },
+      {
+        "teacherCode": "전담2",
+        "teacherName": "전담2",
+        "subject": "실과",
+        "roomName": "모둠학습실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "5-1",
+          "5-2",
+          "6-1"
+        ]
+      }
+    ],
+    "commonBlocks": [
+      {
+        "day": "월",
+        "period": 6
+      },
+      {
+        "day": "화",
+        "period": 6
+      },
+      {
+        "day": "수",
+        "period": 6
+      },
+      {
+        "day": "목",
+        "period": 6
+      },
+      {
+        "day": "금",
+        "period": 6
+      },
+      {
+        "day": "월",
+        "period": 5
+      },
+      {
+        "day": "금",
+        "period": 5
+      },
+      {
+        "day": "수",
+        "period": 5
+      }
+    ],
+    "teacherBlocks": [],
+    "roomBlocks": [],
+    "roomAssignments": [],
+    "lockedLessons": [],
+    "weeklySchedule": [
+      {
+        "grade": 1,
+        "daily": [
+          4,
+          5,
+          5,
+          5,
+          4
+        ]
+      },
+      {
+        "grade": 2,
+        "daily": [
+          4,
+          5,
+          5,
+          5,
+          4
+        ]
+      },
+      {
+        "grade": 3,
+        "daily": [
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "grade": 4,
+        "daily": [
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "grade": 5,
+        "daily": [
+          6,
+          6,
+          5,
+          6,
+          6
+        ]
+      },
+      {
+        "grade": 6,
+        "daily": [
+          6,
+          6,
+          5,
+          6,
+          6
+        ]
+      }
+    ],
+    "viewOptions": {
+      "colorMode": "subject",
+      "focusHighlight": false,
+      "theme": "dark"
+    },
+    "rules": {
+      "lowerGradeMorningFirst": true,
+      "subjectFirst": true,
+      "sameGradeBlockDayFirst": true,
+      "sameSubjectDayFirst": true,
+      "separateGradeBlockAndSingleDay": true,
+      "dayWaveByTeacher": true,
+      "sameGradeFirst": true,
+      "classNumberOrder": true,
+      "balanceDays": true,
+      "maxDailyClassLoadEnabled": true,
+      "maxDailySameSubjectEnabled": true,
+      "useDoubleBlocks": true,
+      "scienceFirst": true,
+      "scienceSameGradeDayFirst": true,
+      "restrictSixthPeriod": false,
+      "sixthPeriodAllowedDays": [
+        "화",
+        "목"
+      ],
+      "roomAssignmentsFirst": false
+    }
+  }
+}

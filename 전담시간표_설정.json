@@ -1,0 +1,618 @@
+{
+  "type": "전담시간표 설정",
+  "savedAt": "2026-05-08T10:32:41.661Z",
+  "config": {
+    "school": {
+      "maxPeriods": 6,
+      "name": "파주 지산초등학교",
+      "year": 2026
+    },
+    "gradeClasses": [
+      {
+        "grade": 1,
+        "classCount": 6
+      },
+      {
+        "grade": 2,
+        "classCount": 6
+      },
+      {
+        "grade": 3,
+        "classCount": 6
+      },
+      {
+        "grade": 4,
+        "classCount": 8
+      },
+      {
+        "grade": 5,
+        "classCount": 8
+      },
+      {
+        "grade": 6,
+        "classCount": 9
+      }
+    ],
+    "rooms": [
+      {
+        "name": "제1과학실",
+        "capacity": 1
+      },
+      {
+        "name": "제2과학실",
+        "capacity": 1
+      },
+      {
+        "name": "제3과학실",
+        "capacity": 1
+      },
+      {
+        "name": "맞춤형 E",
+        "capacity": 1
+      },
+      {
+        "name": "영어실(신관)",
+        "capacity": 1
+      },
+      {
+        "name": "5학년 예비교실",
+        "capacity": 1
+      },
+      {
+        "name": "영어실(후관3층)",
+        "capacity": 1
+      }
+    ],
+    "teachers": [
+      {
+        "teacherCode": "전담1",
+        "teacherName": "염대성",
+        "subject": "국어",
+        "roomName": "",
+        "weeklyHours": 1,
+        "roomHours": 0,
+        "blockPattern": "1",
+        "assignedClasses": [
+          "1-1",
+          "1-2",
+          "1-3",
+          "1-4",
+          "1-5",
+          "1-6",
+          "2-1",
+          "2-2",
+          "2-3",
+          "2-4",
+          "2-5",
+          "2-6"
+        ]
+      },
+      {
+        "teacherCode": "전담1",
+        "teacherName": "염대성",
+        "subject": "과학",
+        "roomName": "제3과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "3-4",
+          "3-5"
+        ]
+      },
+      {
+        "teacherCode": "전담2",
+        "teacherName": "홍석제(김복이)",
+        "subject": "과학",
+        "roomName": "제3과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "3-1",
+          "3-2",
+          "3-3"
+        ]
+      },
+      {
+        "teacherCode": "전담2",
+        "teacherName": "홍석제(김복이)",
+        "subject": "과학",
+        "roomName": "제3과학실",
+        "weeklyHours": 3,
+        "roomHours": 2,
+        "blockPattern": "2+1",
+        "assignedClasses": [
+          "5-1",
+          "5-2",
+          "5-3",
+          "5-4",
+          "5-5"
+        ]
+      },
+      {
+        "teacherCode": "전담3",
+        "teacherName": "김경민",
+        "subject": "과학",
+        "roomName": "제1과학실",
+        "weeklyHours": 3,
+        "roomHours": 2,
+        "blockPattern": "2+1",
+        "assignedClasses": [
+          "5-6",
+          "5-7",
+          "5-8",
+          "6-1",
+          "6-2",
+          "6-3",
+          "6-4"
+        ]
+      },
+      {
+        "teacherCode": "전담4",
+        "teacherName": "류안철",
+        "subject": "과학",
+        "roomName": "제2과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "4-1",
+          "4-2"
+        ]
+      },
+      {
+        "teacherCode": "전담4",
+        "teacherName": "류안철",
+        "subject": "과학",
+        "roomName": "제2과학실",
+        "weeklyHours": 3,
+        "roomHours": 2,
+        "blockPattern": "2+1",
+        "assignedClasses": [
+          "6-5",
+          "6-6",
+          "6-7",
+          "6-8",
+          "6-9"
+        ]
+      },
+      {
+        "teacherCode": "전담5",
+        "teacherName": "김민경",
+        "subject": "영어",
+        "roomName": "맞춤형 E",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "1+1",
+        "assignedClasses": [
+          "4-1",
+          "4-2",
+          "4-3",
+          "4-4",
+          "4-5",
+          "4-6",
+          "4-7",
+          "4-8"
+        ]
+      },
+      {
+        "teacherCode": "전담5",
+        "teacherName": "김민경",
+        "subject": "영어",
+        "roomName": "맞춤형 E",
+        "weeklyHours": 3,
+        "roomHours": 3,
+        "blockPattern": "1+1+1",
+        "assignedClasses": [
+          "6-9"
+        ]
+      },
+      {
+        "teacherCode": "전담6",
+        "teacherName": "한지수",
+        "subject": "영어",
+        "roomName": "영어실(신관)",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "1+1",
+        "assignedClasses": [
+          "3-1",
+          "3-2",
+          "3-3",
+          "3-4",
+          "3-5",
+          "3-6"
+        ]
+      },
+      {
+        "teacherCode": "전담6",
+        "teacherName": "한지수",
+        "subject": "영어",
+        "roomName": "영어실(신관)",
+        "weeklyHours": 3,
+        "roomHours": 3,
+        "blockPattern": "1+1+1",
+        "assignedClasses": [
+          "5-1",
+          "6-1"
+        ]
+      },
+      {
+        "teacherCode": "전담7",
+        "teacherName": "윤수혜(박연희)",
+        "subject": "영어",
+        "roomName": "5학년 예비교실",
+        "weeklyHours": 3,
+        "roomHours": 3,
+        "blockPattern": "1+1+1",
+        "assignedClasses": [
+          "5-2",
+          "5-3",
+          "5-4",
+          "5-5",
+          "5-6",
+          "5-7",
+          "5-8"
+        ]
+      },
+      {
+        "teacherCode": "전담8",
+        "teacherName": "서은주(장보름)",
+        "subject": "영어",
+        "roomName": "영어실(후관3층)",
+        "weeklyHours": 3,
+        "roomHours": 3,
+        "blockPattern": "1+1+1",
+        "assignedClasses": [
+          "6-2",
+          "6-3",
+          "6-4",
+          "6-5",
+          "6-6",
+          "6-7",
+          "6-8"
+        ]
+      },
+      {
+        "teacherCode": "전담9",
+        "teacherName": "신규",
+        "subject": "과학",
+        "roomName": "제3과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "3-6"
+        ]
+      },
+      {
+        "teacherCode": "전담9",
+        "teacherName": "신규",
+        "subject": "과학",
+        "roomName": "제2과학실",
+        "weeklyHours": 2,
+        "roomHours": 2,
+        "blockPattern": "2",
+        "assignedClasses": [
+          "4-3",
+          "4-4",
+          "4-5",
+          "4-6",
+          "4-7",
+          "4-8"
+        ]
+      }
+    ],
+    "commonBlocks": [],
+    "teacherBlocks": [],
+    "roomBlocks": [
+      {
+        "roomName": "맞춤형 E",
+        "day": "월",
+        "period": 6
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "목",
+        "period": 6
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "월",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "목",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "월",
+        "period": 6
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "목",
+        "period": 6
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "월",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "목",
+        "period": 6
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "월",
+        "period": 5
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "금",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "월",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "수",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(신관)",
+        "day": "금",
+        "period": 5
+      },
+      {
+        "roomName": "맞춤형 E",
+        "day": "수",
+        "period": 5
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "월",
+        "period": 5
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "수",
+        "period": 5
+      },
+      {
+        "roomName": "5학년 예비교실",
+        "day": "금",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "월",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "수",
+        "period": 5
+      },
+      {
+        "roomName": "영어실(후관3층)",
+        "day": "금",
+        "period": 5
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "월",
+        "period": 5
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "월",
+        "period": 6
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "제1과학실",
+        "day": "금",
+        "period": 5
+      },
+      {
+        "roomName": "제2과학실",
+        "day": "화",
+        "period": 5
+      },
+      {
+        "roomName": "제2과학실",
+        "day": "화",
+        "period": 6
+      },
+      {
+        "roomName": "제3과학실",
+        "day": "수",
+        "period": 6
+      },
+      {
+        "roomName": "제3과학실",
+        "day": "금",
+        "period": 6
+      },
+      {
+        "roomName": "제3과학실",
+        "day": "금",
+        "period": 5
+      }
+    ],
+    "roomAssignments": [],
+    "lockedLessons": [],
+    "weeklySchedule": [
+      {
+        "grade": 1,
+        "daily": [
+          4,
+          5,
+          5,
+          5,
+          4
+        ]
+      },
+      {
+        "grade": 2,
+        "daily": [
+          4,
+          5,
+          5,
+          5,
+          4
+        ]
+      },
+      {
+        "grade": 3,
+        "daily": [
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "grade": 4,
+        "daily": [
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "grade": 5,
+        "daily": [
+          6,
+          6,
+          5,
+          6,
+          6
+        ]
+      },
+      {
+        "grade": 6,
+        "daily": [
+          6,
+          6,
+          5,
+          6,
+          6
+        ]
+      }
+    ],
+    "viewOptions": {
+      "colorMode": "subject",
+      "focusHighlight": false,
+      "theme": "dark"
+    },
+    "rules": {
+      "lowerGradeMorningFirst": true,
+      "subjectFirst": true,
+      "sameGradeBlockDayFirst": true,
+      "sameSubjectDayFirst": true,
+      "separateGradeBlockAndSingleDay": true,
+      "dayWaveByTeacher": true,
+      "sameGradeFirst": true,
+      "classNumberOrder": true,
+      "balanceDays": true,
+      "maxDailyClassLoadEnabled": true,
+      "maxDailySameSubjectEnabled": true,
+      "useDoubleBlocks": true,
+      "scienceFirst": true,
+      "scienceSameGradeDayFirst": true,
+      "restrictSixthPeriod": false,
+      "sixthPeriodAllowedDays": [
+        "화",
+        "목"
+      ],
+      "roomAssignmentsFirst": false
+    }
+  }
+}
