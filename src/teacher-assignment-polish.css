@@ -1,7 +1,7 @@
-/* 전담 배정 화면: 전담 1명은 한 줄 전체, 과목 카드는 좌우 2열 */
+/* 전담 배정 화면: 전담 1명은 한 줄 전체, 과목 카드는 가능한 경우 자연스럽게 2열 */
 #teacherTab .teacher-area {
   display: grid;
-  grid-template-columns: 1fr !important;
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -21,16 +21,16 @@
   width: 100%;
 }
 
-/* 핵심: 과목 카드가 좌우로 2개씩 보이도록 강제 */
+/* 과목 카드: 화면 폭이 충분하면 좌우 2개, 좁으면 자동 1개 */
 #teacherTab .assignment-list {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 12px !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 12px;
   align-items: start;
 }
 
 #teacherTab .assignment-card {
-  min-width: 0 !important;
+  min-width: 0;
   width: 100%;
 }
 
@@ -79,7 +79,7 @@
 
 @media (max-width: 980px) {
   #teacherTab .assignment-list {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
 
   #teacherTab .teacher-identity {
