@@ -6,9 +6,19 @@
   align-items: start;
 }
 
-/* 상단 전담 추가는 숨기고, 왼쪽 아래 전담 추가 버튼만 사용 */
+/* 상단 전담 추가 버튼은 기능 보호를 위해 표시 유지 */
 #teacherTab #addTeacherBtn {
-  display: none;
+  min-width: 112px;
+  min-height: 38px;
+  border-color: #2364d8;
+  background: #f1f6ff;
+  color: #174ea6;
+  font-weight: 900;
+}
+
+#teacherTab #addTeacherBtn:hover {
+  background: #e7f0ff;
+  border-color: #174ea6;
 }
 
 .teacher-floating-add {
