@@ -1,7 +1,7 @@
-/* 전담 배정 화면: 전담 카드를 좌우 2열로 안정 배치 */
+/* 전담 배정 화면: 전담 카드 + 과목 카드 2열 안정 배치 */
 #teacherArea {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
   gap: 18px;
   align-items: start;
 }
@@ -31,10 +31,10 @@
   min-width: 0;
 }
 
-/* 전담 카드 안에서는 과목 카드가 한 줄씩 쌓이게 유지 */
+/* 전담 카드 안의 과목 카드도 2열. 좁으면 자동 1열 */
 #teacherArea .assignment-list {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 12px;
   align-items: start;
 }
@@ -44,63 +44,96 @@
   width: 100%;
 }
 
+/* 과목 카드 내부 입력 영역 compact */
 #teacherArea .teacher-grid-labels,
 #teacherArea .teacher-grid {
-  grid-template-columns: minmax(86px, 1fr) minmax(82px, 1fr) 58px 68px 68px 46px;
-  gap: 6px;
+  grid-template-columns: minmax(82px, 1fr) minmax(76px, 1fr) 52px 62px 62px 42px;
+  gap: 5px;
 }
 
 #teacherArea .teacher-grid-labels {
-  font-size: 10px;
+  font-size: 9px;
+  letter-spacing: -0.02em;
 }
 
 #teacherArea .teacher-grid input,
 #teacherArea .teacher-grid select {
-  padding: 7px 6px;
-  font-size: 12px;
+  padding: 6px 5px;
+  font-size: 11px;
   min-width: 0;
 }
 
 #teacherArea .teacher-load-badge {
-  min-height: 34px;
-  padding: 0 8px;
-  font-size: 12px;
+  min-height: 30px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+/* 학급 선택 compact */
+#teacherArea .teacher-class-picker {
+  gap: 6px;
 }
 
 #teacherArea .teacher-class-row {
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 6px;
-  padding: 6px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 5px;
+  padding: 5px;
 }
 
 #teacherArea .teacher-grade-name {
-  min-height: 28px;
-  font-size: 12px;
+  min-height: 26px;
+  font-size: 11px;
+  padding: 5px 3px;
 }
 
 #teacherArea .teacher-class-list {
-  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 4px;
 }
 
 #teacherArea .teacher-class-list .chip {
-  min-height: 28px;
-  padding: 4px 5px;
-  font-size: 12px;
+  min-height: 26px;
+  padding: 3px 4px;
+  font-size: 11px;
 }
 
-@media (max-width: 1120px) {
+#teacherArea .assignment-help {
+  font-size: 11px;
+  padding: 6px 8px;
+}
+
+/* 좁은 화면에서는 전담 카드 1열, 과목 카드는 상황에 따라 유지 */
+@media (max-width: 1180px) {
   #teacherArea {
     grid-template-columns: 1fr;
+  }
+
+  #teacherArea .assignment-list {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
 
   #teacherArea .teacher-grid-labels,
   #teacherArea .teacher-grid {
     grid-template-columns: minmax(100px, 1fr) minmax(100px, 1fr) 72px 84px 84px 56px;
   }
+
+  #teacherArea .teacher-grid-labels {
+    font-size: 10px;
+  }
+
+  #teacherArea .teacher-grid input,
+  #teacherArea .teacher-grid select {
+    padding: 7px 6px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 760px) {
   #teacherArea .teacher-identity {
+    grid-template-columns: 1fr;
+  }
+
+  #teacherArea .assignment-list {
     grid-template-columns: 1fr;
   }
 }
