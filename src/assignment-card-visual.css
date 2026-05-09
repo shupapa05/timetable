@@ -90,3 +90,9 @@ body[data-theme="dark"] #teacherTab .chip.active {
   color: #ffffff;
   box-shadow: none;
 }
+html[data-theme="dark"] body[data-theme="dark"] #teacherTab .assignment-card {
+  background: #162133;
+  border-color: #2b3b55;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+}
+
