@@ -6,18 +6,44 @@
   align-items: start;
 }
 
-#teacherTab .panel-head.split #addTeacherBtn {
-  min-width: 112px;
-  min-height: 38px;
-  border-color: #2364d8;
-  background: #f1f6ff;
-  color: #174ea6;
-  font-weight: 900;
+/* 상단 전담 추가는 숨기고, 왼쪽 아래 전담 추가 버튼만 사용 */
+#teacherTab #addTeacherBtn {
+  display: none;
 }
 
-#teacherTab .panel-head.split #addTeacherBtn:hover {
-  background: #e7f0ff;
-  border-color: #174ea6;
+.teacher-floating-add {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 80;
+  min-width: 118px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #c6d4ea;
+  background: #ffffff;
+  color: #172033;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+}
+
+.teacher-floating-add:hover {
+  transform: translateY(-1px);
+  border-color: #2563eb;
+  color: #174ea6;
+  background: #f5f9ff;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.16);
+}
+
+.teacher-floating-add:active {
+  transform: translateY(0);
+}
+
+body:not([data-active-tab="teacherTab"]) .teacher-floating-add {
+  display: none;
 }
 
 #teacherArea > .teacher-card {
@@ -183,6 +209,15 @@
 }
 
 @media (max-width: 760px) {
+  .teacher-floating-add {
+    left: 16px;
+    bottom: 16px;
+    min-width: 108px;
+    min-height: 40px;
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
   #teacherArea .teacher-card-head,
   #teacherArea .teacher-identity {
     grid-template-columns: 1fr;
