@@ -19,11 +19,11 @@
       </div>
       <div class="actions">
         <button id="themeToggleBtn" class="theme-toggle" type="button">일반 모드</button>
-        <button id="saveBtn" class="primary">현재 설정 저장</button>
-        <button id="exportConfigBtn">파일로 백업</button>
-        <button id="importConfigBtn">백업 불러오기</button>
+        <button id="saveBtn" class="primary">설정 저장</button>
+        <button id="exportConfigBtn">설정 백업</button>
+        <button id="importConfigBtn">설정 복원</button>
         <button id="excelSaveBtn">엑셀 저장</button>
-        <button id="printPreviewBtn">출력용 보기</button>
+        <button id="printPreviewBtn">출력 보기</button>
         <button id="directPrintBtn">바로 출력</button>
       </div>
     </header>
@@ -83,21 +83,19 @@
     </section>
 
     <section id="teacherTab" class="tab-panel">
-  <div class="panel">
-    <div class="panel-head split">
-      <div>
-        <h2>전담 배정</h2>
-        <p class="panel-note">전담별로 과목을 여러 개 추가하고, 과목마다 담당 학급을 선택합니다.</p>
+      <div class="panel">
+        <div class="panel-head split">
+          <div>
+            <h2>전담 배정</h2>
+            <p class="panel-note">전담별로 과목을 여러 개 추가하고, 과목마다 담당 학급을 선택합니다.</p>
+          </div>
+        </div>
+        <div id="teacherArea" class="teacher-area"></div>
+        <div class="teacher-add-footer">
+          <button id="addTeacherBtn" class="small" type="button">+ 전담 추가</button>
+        </div>
       </div>
-    </div>
-
-    <div id="teacherArea" class="teacher-area"></div>
-
-    <div class="teacher-add-footer">
-      <button id="addTeacherBtn" class="small" type="button">+ 전담 추가</button>
-    </div>
-  </div>
-</section>
+    </section>
 
     <section id="excludeTab" class="tab-panel">
       <div class="panel">
@@ -133,8 +131,8 @@
               <button id="buildBtn" class="primary">시간표 작성</button>
               <button id="manualBlankBtn" type="button">수동 작성</button>
               <button id="undoTimetableBtn" type="button">되돌리기</button>
-              <button id="saveTimetableBtn" type="button">시간표 저장</button>
-              <button id="loadTimetableBtn" type="button">시간표 불러오기</button>
+              <button id="saveTimetableBtn" type="button">결과 저장</button>
+              <button id="loadTimetableBtn" type="button">결과 불러오기</button>
               <button id="weeklyHoursBtn">주당 수업시수</button>
             </div>
           </div>
@@ -202,9 +200,9 @@
     </section>
 
     <div class="quick-dock" aria-label="빠른 작업">
-      <span id="quickDockStatus" class="quick-dock-status">자동 저장 준비</span>
+      <span id="quickDockStatus" class="quick-dock-status">저장 준비</span>
       <button id="quickBuildBtn" type="button" class="primary">시간표 작성</button>
-      <button id="quickTimetableSaveBtn" type="button">시간표 저장</button>
+      <button id="quickTimetableSaveBtn" type="button">결과 저장</button>
       <button id="quickUndoBtn" type="button">되돌리기</button>
     </div>
   </main>
