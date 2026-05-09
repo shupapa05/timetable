@@ -1,77 +1,77 @@
 /* 전담 배정 화면: 전담 카드를 좌우 2열로 배치 */
-#teacherTab .teacher-area {
+#teacherArea {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   align-items: start;
 }
 
-#teacherTab .teacher-card {
+#teacherArea > .teacher-card {
   min-width: 0;
   width: 100%;
 }
 
-#teacherTab .teacher-card-head {
+#teacherArea .teacher-card-head {
   align-items: start;
 }
 
-#teacherTab .teacher-identity {
+#teacherArea .teacher-identity {
   grid-template-columns: minmax(120px, 0.8fr) minmax(150px, 1.2fr) auto;
   gap: 8px;
   width: 100%;
 }
 
 /* 전담 카드 안에서는 과목 카드가 한 줄씩 쌓이게 유지 */
-#teacherTab .assignment-list {
+#teacherArea .assignment-list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
   align-items: start;
 }
 
-#teacherTab .assignment-card {
+#teacherArea .assignment-card {
   min-width: 0;
   width: 100%;
 }
 
-#teacherTab .teacher-grid-labels,
-#teacherTab .teacher-grid {
+#teacherArea .teacher-grid-labels,
+#teacherArea .teacher-grid {
   grid-template-columns: minmax(90px, 1fr) minmax(90px, 1fr) 62px 76px 76px 52px;
   gap: 6px;
 }
 
-#teacherTab .teacher-grid-labels {
+#teacherArea .teacher-grid-labels {
   font-size: 10px;
 }
 
-#teacherTab .teacher-grid input,
-#teacherTab .teacher-grid select {
+#teacherArea .teacher-grid input,
+#teacherArea .teacher-grid select {
   padding: 7px 6px;
   font-size: 12px;
 }
 
-#teacherTab .teacher-load-badge {
+#teacherArea .teacher-load-badge {
   min-height: 34px;
   padding: 0 8px;
   font-size: 12px;
 }
 
-#teacherTab .teacher-class-row {
+#teacherArea .teacher-class-row {
   grid-template-columns: 48px minmax(0, 1fr);
   gap: 6px;
   padding: 6px;
 }
 
-#teacherTab .teacher-grade-name {
+#teacherArea .teacher-grade-name {
   min-height: 28px;
   font-size: 12px;
 }
 
-#teacherTab .teacher-class-list {
+#teacherArea .teacher-class-list {
   grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
 }
 
-#teacherTab .teacher-class-list .chip {
+#teacherArea .teacher-class-list .chip {
   min-height: 28px;
   padding: 4px 5px;
   font-size: 12px;
@@ -79,13 +79,13 @@
 
 /* 아주 좁은 화면에서만 1열로 전환 */
 @media (max-width: 900px) {
-  #teacherTab .teacher-area {
+  #teacherArea {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 760px) {
-  #teacherTab .teacher-identity {
+  #teacherArea .teacher-identity {
     grid-template-columns: 1fr;
   }
 }
