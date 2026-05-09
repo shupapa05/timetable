@@ -27,22 +27,29 @@
   overflow: hidden;
 }
 
+/* 헤더 한 줄 유지 */
 #teacherArea .teacher-card-head {
-  align-items: start;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   padding: 14px;
 }
 
+/* 표시 이름 칸 축소 */
 #teacherArea .teacher-identity {
-  grid-template-columns: minmax(116px, 0.75fr) minmax(150px, 1.2fr) auto;
+  grid-template-columns: 104px 210px auto;
   gap: 8px;
   width: 100%;
   min-width: 0;
+  align-items: center;
 }
 
 #teacherArea .teacher-identity label,
 #teacherArea .teacher-identity input {
   min-width: 0;
+}
+
+#teacherArea .teacher-identity input {
+  max-width: 210px;
 }
 
 /* 과목 카드는 전담 카드 안에서 1개씩 세로 배치 */
