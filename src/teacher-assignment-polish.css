@@ -6,6 +6,20 @@
   align-items: start;
 }
 
+#teacherTab .panel-head.split #addTeacherBtn {
+  min-width: 112px;
+  min-height: 38px;
+  border-color: #2364d8;
+  background: #f1f6ff;
+  color: #174ea6;
+  font-weight: 900;
+}
+
+#teacherTab .panel-head.split #addTeacherBtn:hover {
+  background: #e7f0ff;
+  border-color: #174ea6;
+}
+
 #teacherArea > .teacher-card {
   min-width: 0;
   width: 100%;
@@ -44,22 +58,33 @@
   width: 100%;
 }
 
-/* 과목 카드 내부 입력 영역 compact */
-#teacherArea .teacher-grid-labels,
-#teacherArea .teacher-grid {
-  grid-template-columns: minmax(82px, 1fr) minmax(76px, 1fr) 52px 62px 62px 42px;
-  gap: 5px;
+/* 과목 카드 내부 입력 영역: 2줄 구조 */
+#teacherArea .teacher-grid-labels {
+  display: none;
 }
 
-#teacherArea .teacher-grid-labels {
-  font-size: 9px;
-  letter-spacing: -0.02em;
+#teacherArea .teacher-grid {
+  display: grid;
+  grid-template-columns: minmax(112px, 1fr) minmax(112px, 1fr) 64px 64px 64px;
+  gap: 6px;
+  align-items: center;
+}
+
+#teacherArea .teacher-grid > :nth-child(1),
+#teacherArea .teacher-grid > :nth-child(2) {
+  grid-column: span 2;
+}
+
+#teacherArea .teacher-grid > :nth-child(6) {
+  grid-column: 5;
+  grid-row: 1 / span 2;
+  align-self: stretch;
 }
 
 #teacherArea .teacher-grid input,
 #teacherArea .teacher-grid select {
-  padding: 6px 5px;
-  font-size: 11px;
+  padding: 7px 6px;
+  font-size: 12px;
   min-width: 0;
 }
 
@@ -69,7 +94,7 @@
   font-size: 11px;
 }
 
-/* 학급 선택 compact */
+/* 학급 선택 compact: 한 줄에 4개 반 */
 #teacherArea .teacher-class-picker {
   gap: 6px;
 }
@@ -87,7 +112,7 @@
 }
 
 #teacherArea .teacher-class-list {
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -112,19 +137,8 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
 
-  #teacherArea .teacher-grid-labels,
   #teacherArea .teacher-grid {
-    grid-template-columns: minmax(100px, 1fr) minmax(100px, 1fr) 72px 84px 84px 56px;
-  }
-
-  #teacherArea .teacher-grid-labels {
-    font-size: 10px;
-  }
-
-  #teacherArea .teacher-grid input,
-  #teacherArea .teacher-grid select {
-    padding: 7px 6px;
-    font-size: 12px;
+    grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) 76px 76px 76px;
   }
 }
 
@@ -135,5 +149,16 @@
 
   #teacherArea .assignment-list {
     grid-template-columns: 1fr;
+  }
+
+  #teacherArea .teacher-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #teacherArea .teacher-grid > :nth-child(1),
+  #teacherArea .teacher-grid > :nth-child(2),
+  #teacherArea .teacher-grid > :nth-child(6) {
+    grid-column: auto;
+    grid-row: auto;
   }
 }
