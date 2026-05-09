@@ -6,17 +6,19 @@
   align-items: start;
 }
 
-/* 실제 추가 동작은 유지하되, 화면에는 왼쪽 아래 전담 추가 버튼만 노출 */
+/* 상단 전담 추가 버튼은 기능 보호를 위해 표시 유지 */
 #teacherTab #addTeacherBtn {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  min-width: 112px;
+  min-height: 38px;
+  border-color: var(--primary);
+  background: var(--panel-soft);
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+
+#teacherTab #addTeacherBtn:hover {
+  background: var(--panel-tint);
+  border-color: var(--primary-dark);
 }
 
 .teacher-floating-add {
@@ -48,10 +50,6 @@
 
 .teacher-floating-add:active {
   transform: translateY(0);
-}
-
-body:not([data-active-tab="teacherTab"]) .teacher-floating-add {
-  display: none;
 }
 
 #teacherArea > .teacher-card {
