@@ -1168,7 +1168,7 @@ function renderTeachers() {
             <div class="teacher-load-badge" data-role="teacher-load">${makeTeacherLoadText(group.assignments)}</div>
           </div>
           <div class="teacher-actions">
-            <button class="small add-assignment">과목 배정 추가</button>
+            <button class="small add-assignment">과목+</button>
             <button class="small remove-teacher">전담 삭제</button>
           </div>
         </div>
