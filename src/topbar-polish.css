@@ -1,0 +1,132 @@
+/* 상단 헤더 정리용 보조 스타일 */
+.topbar {
+  min-height: 132px;
+  align-items: center;
+  padding: 24px 28px;
+  border-radius: 12px;
+}
+
+.topbar > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.topbar .eyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.82;
+}
+
+.topbar h1 {
+  font-size: 29px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 124px 232px;
+  gap: 8px;
+  align-items: stretch;
+  justify-content: end;
+  max-width: 362px;
+}
+
+.actions button {
+  min-height: 39px;
+  padding: 8px 13px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.actions #themeToggleBtn {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.actions #saveBtn {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 232px;
+}
+
+.actions #exportConfigBtn,
+.actions #printPreviewBtn {
+  grid-column: 1;
+}
+
+.actions #importConfigBtn,
+.actions #directPrintBtn {
+  grid-column: 2;
+}
+
+.actions #excelSaveBtn {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+
+@media (min-width: 1180px) {
+  .actions {
+    grid-template-columns: 124px 124px 104px;
+    max-width: 368px;
+  }
+
+  .actions #themeToggleBtn {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .actions #saveBtn {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .actions #exportConfigBtn {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .actions #importConfigBtn {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .actions #excelSaveBtn {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .actions #printPreviewBtn {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .actions #directPrintBtn {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    display: grid;
+    gap: 18px;
+  }
+
+  .actions {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actions #saveBtn,
+  .actions #excelSaveBtn {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}
