@@ -30,21 +30,6 @@
   border-color: var(--primary-dark);
 }
 
-/* 상단 전담 추가 버튼은 기능 보호를 위해 표시 유지 */
-#teacherTab #addTeacherBtn {
-  min-width: 112px;
-  min-height: 38px;
-  border-color: var(--primary);
-  background: var(--panel-soft);
-  color: var(--primary-dark);
-  font-weight: 900;
-}
-
-#teacherTab #addTeacherBtn:hover {
-  background: var(--panel-tint);
-  border-color: var(--primary-dark);
-}
-
 #teacherArea > .teacher-card {
   min-width: 0;
   width: 100%;
@@ -208,15 +193,6 @@
 }
 
 @media (max-width: 760px) {
-  .teacher-floating-add {
-    left: 16px;
-    bottom: 16px;
-    min-width: 108px;
-    min-height: 40px;
-    padding: 9px 14px;
-    font-size: 13px;
-  }
-
   #teacherArea .teacher-card-head,
   #teacherArea .teacher-identity {
     grid-template-columns: 1fr;
