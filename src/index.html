@@ -208,5 +208,12 @@
   </main>
 
   <script type="module" src="./renderer.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const floatingTeacherBtn = document.getElementById('addTeacherFloatingBtn');
+      const addTeacherBtn = document.getElementById('addTeacherBtn');
+      floatingTeacherBtn?.addEventListener('click', () => addTeacherBtn?.click());
+    });
+  </script>
 </body>
 </html>
