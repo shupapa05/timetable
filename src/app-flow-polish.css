@@ -1,4 +1,12 @@
 /* 전체 화면 흐름 정리 */
+:root {
+  --text-soft: var(--muted);
+}
+
+html[data-theme="dark"] {
+  --text-soft: #a8b7cc;
+}
+
 .app-tabs {
   grid-template-columns: repeat(6, minmax(96px, 1fr));
 }
