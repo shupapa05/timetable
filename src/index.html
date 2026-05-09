@@ -89,9 +89,11 @@
             <h2>전담 배정</h2>
             <p class="panel-note">전담별로 과목을 여러 개 추가하고, 과목마다 담당 학급을 선택합니다.</p>
           </div>
-          <button id="addTeacherBtn" class="small">전담 추가</button>
         </div>
         <div id="teacherArea" class="teacher-area"></div>
+        <div class="teacher-add-footer">
+          <button id="addTeacherBtn" class="small" type="button">+ 전담 추가</button>
+        </div>
       </div>
     </section>
 
@@ -203,17 +205,8 @@
       <button id="quickTimetableSaveBtn" type="button">시간표 저장</button>
       <button id="quickUndoBtn" type="button">되돌리기</button>
     </div>
-
-    <button id="addTeacherFloatingBtn" class="teacher-floating-add" type="button">+ 전담 추가</button>
   </main>
 
   <script type="module" src="./renderer.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const floatingTeacherBtn = document.getElementById('addTeacherFloatingBtn');
-      const addTeacherBtn = document.getElementById('addTeacherBtn');
-      floatingTeacherBtn?.addEventListener('click', () => addTeacherBtn?.click());
-    });
-  </script>
 </body>
 </html>
