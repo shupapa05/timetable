@@ -4779,3 +4779,11 @@ function escapeHtml(value) {
 function escapeAttr(value) {
   return escapeHtml(value).replaceAll("'", '&#39;');
 }
+const floatingTeacherBtn = document.getElementById('addTeacherFloatingBtn');
+const addTeacherBtn = document.getElementById('addTeacherBtn');
+
+if (floatingTeacherBtn && addTeacherBtn) {
+  floatingTeacherBtn.addEventListener('click', () => {
+    addTeacherBtn.click();
+  });
+}
