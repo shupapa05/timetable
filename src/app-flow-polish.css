@@ -17,6 +17,108 @@
   margin-bottom: 14px;
 }
 
+/* 특별실 설정 화면 정리 */
+#roomAssignTab .panel,
+#roomTimetableTab .panel {
+  border-radius: 16px;
+}
+
+#roomAssignTab .panel-head,
+#roomTimetableTab .panel-head {
+  padding: 16px 18px;
+}
+
+#roomAssignTab .panel-note,
+#roomTimetableTab .panel-note {
+  font-size: 12px;
+}
+
+#roomAssignTab .settings-block {
+  padding: 14px;
+}
+
+#roomAssignTab .room-card,
+#roomAssignTab .special-room-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+#roomAssignTab .room-card-header,
+#roomAssignTab .special-room-header {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-soft);
+}
+
+#roomAssignTab .room-card-title,
+#roomAssignTab .special-room-title {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+#roomAssignTab .room-card-body,
+#roomAssignTab .special-room-body {
+  padding: 12px;
+}
+
+#roomAssignTab .teacher-class-list,
+#roomAssignTab .room-class-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+#roomAssignTab .chip {
+  min-height: 30px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#roomAssignTab .room-hours,
+#roomAssignTab .special-room-hours {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+#roomTimetableTab .manual-layout {
+  gap: 14px;
+}
+
+#roomTimetableTab .manual-side-panel {
+  border-radius: 16px;
+}
+
+#roomTimetableTab .manual-lesson-bank {
+  padding: 10px;
+  gap: 6px;
+}
+
+#roomTimetableTab .manual-main-panel {
+  overflow: hidden;
+}
+
+#roomTimetableArea {
+  padding: 10px;
+}
+
+#roomTimetableTab .room-result-card {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
 /* 시간표 작성 화면 정리 */
 #timetableTab .viewer-actions {
   display: grid;
@@ -116,7 +218,6 @@
   .summary,
   .app-tabs,
   .quick-dock,
-  .teacher-floating-add,
   .viewer-actions,
   .viewer-tools,
   .manual-side-panel,
@@ -218,10 +319,20 @@
   #timetableTab .unified-manual-layout {
     grid-template-columns: 1fr;
   }
+
+  #roomAssignTab .teacher-class-list,
+  #roomAssignTab .room-class-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
   .app-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #roomAssignTab .teacher-class-list,
+  #roomAssignTab .room-class-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
