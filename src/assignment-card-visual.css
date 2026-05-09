@@ -1,0 +1,50 @@
+#teacherTab .assignment-card {
+  border: 1px solid #ccd9ea;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+}
+
+#teacherTab .assignment-card:nth-child(odd) {
+  border-left: 6px solid #2563eb;
+}
+
+#teacherTab .assignment-card:nth-child(even) {
+  border-left: 6px solid #0f766e;
+}
+
+#teacherTab .assignment-summary {
+  min-height: 58px;
+  padding: 11px 14px;
+  background: linear-gradient(180deg, #ffffff, #f6f9fe);
+  border: 0;
+  border-bottom: 1px solid #e7eef8;
+}
+
+#teacherTab .assignment-summary strong {
+  font-size: 16px;
+  font-weight: 900;
+  color: #14233b;
+}
+
+#teacherTab .assignment-summary span {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #66758d;
+}
+
+#teacherTab .assignment-summary em {
+  min-width: 64px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #174ea6;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+#teacherTab .assignment-card:hover {
+  border-color: #aac0df;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
