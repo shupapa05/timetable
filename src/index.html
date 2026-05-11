@@ -104,28 +104,11 @@
     </section>
 
     <section id="teacherTab" class="tab-panel">
-      <div class="panel optimizer-panel">
-        <div class="panel-head split">
-          <div>
-            <h2>전담 배정</h2>
-            <p class="panel-note">고정 총시수와 선택 학년을 정한 뒤 자동 추천 또는 수동 정리로 전담 배정을 완료합니다.</p>
-          </div>
-          <div class="optimizer-actions">
-            <button id="optimizerRefreshBtn" type="button">저장된 설정 불러오기</button>
-            <button id="optimizerRunBtn" type="button" class="primary">자동 배정</button>
-            <button id="optimizerApplyBtn" type="button">배정 적용</button>
-          </div>
-        </div>
-        <div id="optimizerArea" class="optimizer-area">
-          <div class="optimizer-empty">학교 설정에서 전담 기본 조건을 입력한 뒤 사용할 수 있습니다.</div>
-        </div>
-      </div>
-
       <div class="panel advanced-teacher-panel">
         <div class="panel-head split">
           <div>
-            <h2>고급 전담 수정</h2>
-            <p class="panel-note">자동 배정 적용 후 세부 배정을 직접 수정할 때 사용합니다.</p>
+            <h2>전담 배정</h2>
+            <p class="panel-note">전담최적화에서 적용한 결과를 최종 수동 수정하거나, 자동최적화 없이 직접 입력합니다.</p>
           </div>
         </div>
         <div id="teacherArea" class="teacher-area"></div>
@@ -246,6 +229,9 @@
   </main>
 
   <script type="module" src="./renderer.js"></script>
-  <script type="module" src="./optimizer-ui.js"></script>
+  <script type="module" src="./optimizer-standalone.js"></script>
+  <script type="module" src="./optimizer-reset-patch.js"></script>
+  <script type="module" src="./optimizer-duplicate-guard-patch.js"></script>
+  <script type="module" src="./optimizer-weekly-hours-patch.js"></script>
 </body>
 </html>
