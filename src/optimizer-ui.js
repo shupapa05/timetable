@@ -46,12 +46,21 @@ async function loadOptimizerConfig() {
   renderOptimizerSetup(currentConfig || {}, optimizerSettings);
 }
 
+function normalizeSubjectPoolsForUI(items = []) {
+  const input = Array.isArray(items) ? items : [];
+  return input.map((item) => ({
+    subject: String(item.subject || '').trim(),
+    grades: Array.isArray(item.grades) ? item.grades.map(Number).filter((grade) => grade >= 1 && grade <= 6) : []
+  }));
+}
+
 function renderOptimizerBaseSetup(config, settings) {
   const area = document.getElementById('optimizerBaseArea');
   if (!area) return;
 
   const optimizer = settings || normalizeOptimizerSettings(config);
-  const subjectPools = normalizeSubjectPools(optimizer.subjectPools || []);
+  const subjectPools = normalizeSubjectPoolsForUI(optimizer.subjectPools || []);
+  const validSubjectCount = normalizeSubjectPools(subjectPools).length;
   const teacherCount = Number(optimizer.teacherCount || 0);
 
   area.innerHTML = `
@@ -62,7 +71,7 @@ function renderOptimizerBaseSetup(config, settings) {
       </label>
       <div class="optimizer-card">
         <span>전담 과목 수</span>
-        <strong>${subjectPools.length}개</strong>
+        <strong>${validSubjectCount}개</strong>
       </div>
     </div>
 
@@ -91,7 +100,7 @@ function renderOptimizerBaseSetup(config, settings) {
   `;
 
   document.getElementById('addSubjectPoolBtn')?.addEventListener('click', () => {
-    const next = collectBaseSettingsFromUI();
+    const next = collectBaseSettingsFromUI({ keepEmpty: true });
     next.subjectPools.push({ subject: '', grades: [] });
     optimizerSettings = next;
     renderOptimizerBaseSetup(currentConfig || {}, optimizerSettings);
@@ -102,7 +111,7 @@ function renderOptimizerBaseSetup(config, settings) {
   area.querySelectorAll('[data-remove-subject-index]').forEach((button) => {
     button.addEventListener('click', () => {
       const index = Number(button.dataset.removeSubjectIndex || 0);
-      const next = collectBaseSettingsFromUI();
+      const next = collectBaseSettingsFromUI({ keepEmpty: true });
       next.subjectPools.splice(index, 1);
       optimizerSettings = next;
       renderOptimizerBaseSetup(currentConfig || {}, optimizerSettings);
@@ -133,33 +142,35 @@ function makeSubjectPoolRow(pool, index) {
   `;
 }
 
-function collectBaseSettingsFromUI() {
+function collectBaseSettingsFromUI(options = {}) {
   const teacherCount = Number(document.getElementById('baseTeacherCount')?.value || optimizerSettings?.teacherCount || 0);
   const rows = Array.from(document.querySelectorAll('#subjectPoolRows tr'));
-  const subjectPools = rows.map((row, index) => {
+  const rawSubjectPools = rows.map((row, index) => {
     const subject = row.querySelector(`[data-base-field="subject"][data-subject-index="${index}"]`)?.value || '';
     const grades = Array.from(row.querySelectorAll(`[data-base-field="grades"][data-subject-index="${index}"]:checked`))
       .map((checkbox) => Number(checkbox.value))
       .filter(Boolean);
     return { subject, grades };
-  }).filter((pool) => pool.subject);
+  });
+  const subjectPools = options.keepEmpty ? rawSubjectPools : normalizeSubjectPools(rawSubjectPools);
 
   return {
     ...(optimizerSettings || {}),
     teacherCount,
     subjectPools,
-    planningTeachers: normalizePlanningTeachers(optimizerSettings?.planningTeachers || [], teacherCount, subjectPools)
+    planningTeachers: normalizePlanningTeachers(optimizerSettings?.planningTeachers || [], teacherCount, normalizeSubjectPools(subjectPools))
   };
 }
 
 async function saveOptimizerBaseSettings() {
-  optimizerSettings = collectBaseSettingsFromUI();
+  optimizerSettings = collectBaseSettingsFromUI({ keepEmpty: false });
   currentConfig = currentConfig || {};
   currentConfig.optimizer = {
     ...(currentConfig.optimizer || {}),
     ...optimizerSettings
   };
   await window.desktopApi.saveConfig(currentConfig);
+  renderOptimizerBaseSetup(currentConfig, optimizerSettings);
   renderOptimizerSetup(currentConfig, optimizerSettings);
   alert('전담 기본 조건을 저장했습니다.');
 }
@@ -247,7 +258,7 @@ function makeSubjectOptions(subjectPools, selected) {
 }
 
 function getAllowedGradesForSubject(subject, subjectPools) {
-  const found = subjectPools.find((pool) => pool.subject === subject);
+  const found = normalizeSubjectPools(subjectPools).find((pool) => pool.subject === subject);
   return found?.grades?.length ? found.grades : [1, 2, 3, 4, 5, 6];
 }
 
@@ -447,7 +458,7 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/\"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
