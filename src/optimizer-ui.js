@@ -32,10 +32,27 @@ async function loadOptimizerConfig() {
 }
 
 function normalizeSubjectPoolsForUI(items = []) {
-  return (Array.isArray(items) ? items : []).map((item) => ({
-    subject: String(item.subject || '').trim(),
-    grades: Array.isArray(item.grades) ? item.grades.map(Number).filter((grade) => grade >= 1 && grade <= 6) : []
-  }));
+  return (Array.isArray(items) ? items : []).map((item) => {
+    const rawGradeHours = item.gradeHours || item.hours || {};
+    const gradeHours = {};
+
+    for (let grade = 1; grade <= 6; grade += 1) {
+      const hour = Number(rawGradeHours[grade] ?? rawGradeHours[String(grade)] ?? 0);
+      if (hour > 0) gradeHours[grade] = hour;
+    }
+
+    if (!Object.keys(gradeHours).length && Array.isArray(item.grades)) {
+      item.grades.map(Number).filter((grade) => grade >= 1 && grade <= 6).forEach((grade) => {
+        gradeHours[grade] = 1;
+      });
+    }
+
+    return {
+      subject: String(item.subject || '').trim(),
+      gradeHours,
+      grades: Object.keys(gradeHours).map(Number).sort((a, b) => a - b)
+    };
+  });
 }
 
 function renderOptimizerBaseSetup() {
@@ -54,9 +71,20 @@ function renderOptimizerBaseSetup() {
       </label>
       <div class="optimizer-card"><span>전담 과목 수</span><strong>${validSubjectCount}개</strong></div>
     </div>
-    <div class="optimizer-help">학교에서 운영 가능한 전담 과목과 해당 과목을 배정할 수 있는 학년을 체크합니다.</div>
+    <div class="optimizer-help">과목별로 학년별 주당 시수를 입력합니다. 빈칸 또는 0은 해당 학년 배정 제외로 처리됩니다.</div>
     <table class="optimizer-table">
-      <thead><tr><th>과목</th><th>가능 학년</th><th>관리</th></tr></thead>
+      <thead>
+        <tr>
+          <th>과목</th>
+          <th>1학년</th>
+          <th>2학년</th>
+          <th>3학년</th>
+          <th>4학년</th>
+          <th>5학년</th>
+          <th>6학년</th>
+          <th>관리</th>
+        </tr>
+      </thead>
       <tbody id="subjectPoolRows">${subjectPools.map((pool, index) => makeSubjectPoolRow(pool, index)).join('')}</tbody>
     </table>
     <div class="optimizer-actions optimizer-inline-actions">
@@ -67,7 +95,7 @@ function renderOptimizerBaseSetup() {
 
   document.getElementById('addSubjectPoolBtn')?.addEventListener('click', () => {
     const next = collectBaseSettingsFromUI({ keepEmpty: true });
-    next.subjectPools.push({ subject: '', grades: [] });
+    next.subjectPools.push({ subject: '', gradeHours: {}, grades: [] });
     optimizerSettings = next;
     renderOptimizerBaseSetup();
   });
@@ -86,6 +114,8 @@ function renderOptimizerBaseSetup() {
 }
 
 function makeSubjectPoolRow(pool, index) {
+  const gradeHours = pool.gradeHours || {};
+
   return `
     <tr>
       <td>
@@ -93,9 +123,20 @@ function makeSubjectPoolRow(pool, index) {
           ${SUBJECT_OPTIONS.map((subject) => `<option value="${escapeAttr(subject)}" ${subject === (pool.subject || '') ? 'selected' : ''}>${subject || '선택'}</option>`).join('')}
         </select>
       </td>
-      <td><div class="optimizer-grade-checks">${[1, 2, 3, 4, 5, 6].map((grade) => `
-        <label><input type="checkbox" data-base-field="grades" data-subject-index="${index}" value="${grade}" ${pool.grades?.includes(grade) ? 'checked' : ''}>${grade}학년</label>
-      `).join('')}</div></td>
+      ${[1, 2, 3, 4, 5, 6].map((grade) => `
+        <td>
+          <input
+            class="optimizer-target-input"
+            type="number"
+            min="0"
+            step="1"
+            data-base-field="gradeHours"
+            data-subject-index="${index}"
+            data-grade="${grade}"
+            value="${Number(gradeHours[grade] || gradeHours[String(grade)] || 0) || ''}"
+            placeholder="-">
+        </td>
+      `).join('')}
       <td><button type="button" data-remove-subject-index="${index}">삭제</button></td>
     </tr>
   `;
@@ -104,16 +145,34 @@ function makeSubjectPoolRow(pool, index) {
 function collectBaseSettingsFromUI(options = {}) {
   const teacherCount = Number(document.getElementById('baseTeacherCount')?.value || optimizerSettings?.teacherCount || 0);
   const rows = Array.from(document.querySelectorAll('#subjectPoolRows tr'));
-  const rawSubjectPools = rows.map((row, index) => ({
-    subject: row.querySelector(`[data-base-field="subject"][data-subject-index="${index}"]`)?.value || '',
-    grades: Array.from(row.querySelectorAll(`[data-base-field="grades"][data-subject-index="${index}"]:checked`)).map((checkbox) => Number(checkbox.value)).filter(Boolean)
-  }));
+
+  const rawSubjectPools = rows.map((row, index) => {
+    const gradeHours = {};
+
+    row.querySelectorAll(`[data-base-field="gradeHours"][data-subject-index="${index}"]`).forEach((input) => {
+      const grade = Number(input.dataset.grade || 0);
+      const hour = Number(input.value || 0);
+      if (grade >= 1 && grade <= 6 && hour > 0) {
+        gradeHours[grade] = hour;
+      }
+    });
+
+    return {
+      subject: row.querySelector(`[data-base-field="subject"][data-subject-index="${index}"]`)?.value || '',
+      gradeHours,
+      grades: Object.keys(gradeHours).map(Number).sort((a, b) => a - b)
+    };
+  });
+
   const subjectPools = options.keepEmpty ? rawSubjectPools : normalizeSubjectPools(rawSubjectPools);
+  const normalizedSubjectPools = normalizeSubjectPools(subjectPools);
+
   return {
     ...(optimizerSettings || {}),
     teacherCount,
     subjectPools,
-    planningTeachers: normalizePlanningTeachers(optimizerSettings?.planningTeachers || [], teacherCount, normalizeSubjectPools(subjectPools))
+    totalDedicatedHours: calculateSchoolTotalHours(normalizedSubjectPools) || optimizerSettings?.totalDedicatedHours || 0,
+    planningTeachers: normalizePlanningTeachers(optimizerSettings?.planningTeachers || [], teacherCount, normalizedSubjectPools)
   };
 }
 
@@ -254,9 +313,20 @@ function collectOptimizerSettingsFromUI() {
     ...(optimizerSettings || {}),
     teacherCount,
     subjectPools,
-    totalDedicatedHours: calculateAutoTotalHours(flattenPlanningTeachers(planningTeachers)),
+    totalDedicatedHours: calculateSchoolTotalHours(subjectPools) || calculateAutoTotalHours(flattenPlanningTeachers(planningTeachers)),
     planningTeachers
   };
+}
+
+function calculateSchoolTotalHours(subjectPools = []) {
+  const classMap = makeClassMap(currentConfig?.gradeClasses || []);
+  return normalizeSubjectPools(subjectPools).reduce((sum, pool) => {
+    return sum + pool.grades.reduce((gradeSum, grade) => {
+      const classCount = Number(classMap[grade] || 0);
+      const hour = Number(pool.gradeHours?.[grade] || pool.gradeHours?.[String(grade)] || 0);
+      return gradeSum + classCount * hour;
+    }, 0);
+  }, 0);
 }
 
 function calculateAutoTotalHours(rows) {
@@ -325,8 +395,24 @@ function collectEditedResultRows() {
   if (!optimizerResult) return [];
   return optimizerResult.rows.map((row, rowIndex) => {
     const checked = Array.from(document.querySelectorAll(`input[data-result-row="${rowIndex}"]:checked`)).map((input) => input.value);
-    return { ...row, recommendedClasses: checked, recommendedHours: checked.length, grades: [...new Set(checked.map((code) => Number(code.split('-')[0])))].sort((a, b) => a - b) };
+    return {
+      ...row,
+      recommendedClasses: checked,
+      recommendedHours: calculateCheckedClassHours(row.subject, checked),
+      grades: [...new Set(checked.map((code) => Number(code.split('-')[0])))].sort((a, b) => a - b)
+    };
   });
+}
+
+function calculateCheckedClassHours(subject, classCodes = []) {
+  const subjectPools = normalizeSubjectPools(optimizerSettings?.subjectPools || []);
+  const pool = subjectPools.find((item) => item.subject === subject);
+
+  return classCodes.reduce((sum, code) => {
+    const grade = Number(String(code).split('-')[0]);
+    const hour = Number(pool?.gradeHours?.[grade] || pool?.gradeHours?.[String(grade)] || 1);
+    return sum + hour;
+  }, 0);
 }
 
 async function applyOptimizerResult() {
