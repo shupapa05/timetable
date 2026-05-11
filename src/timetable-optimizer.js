@@ -34,7 +34,8 @@ export function normalizeTeacherAssignments(items = [], firstSubject = '') {
 }
 
 export function normalizePlanningTeachers(items = [], teacherCount = 0, subjectPools = []) {
-  const count = Math.max(0, Number(teacherCount || items.length || 0));
+  const explicitCount = Number(teacherCount);
+  const count = Math.max(0, Number.isFinite(explicitCount) && explicitCount > 0 ? explicitCount : (Array.isArray(items) ? items.length : 0));
   const firstSubject = subjectPools[0]?.subject || '';
   return Array.from({ length: count }, (_, index) => {
     const item = items[index] || {};
@@ -82,7 +83,7 @@ export function getDefaultOptimizerSettings(config = {}) {
   const planningTeachers = makeInitialPlanningTeachers(config);
   const subjectPools = makeInitialSubjectPools(config, planningTeachers);
   return {
-    teacherCount: planningTeachers.length || Number(config.teacherCount || 0) || 0,
+    teacherCount: Number(config.teacherCount ?? 0) || planningTeachers.length || 0,
     totalDedicatedHours: getCurrentDedicatedHours({ teachers: flattenPlanningTeachers(planningTeachers) }),
     subjectPools,
     planningTeachers,
@@ -100,9 +101,7 @@ export function normalizeOptimizerSettings(config = {}) {
   const base = getDefaultOptimizerSettings(config);
   const saved = config.optimizerStandalone || config.optimizer || {};
   const subjectPools = normalizeSubjectPools(saved.subjectPools || base.subjectPools || []);
-  const savedTeacherCount = Number(saved.teacherCount || 0);
-  const savedPlanningCount = Array.isArray(saved.planningTeachers) ? saved.planningTeachers.length : 0;
-  const teacherCount = Number(savedTeacherCount || savedPlanningCount || base.teacherCount || 0);
+  const teacherCount = Math.max(0, Number(saved.teacherCount ?? base.teacherCount ?? 0) || 0);
   return {
     ...base,
     ...saved,
