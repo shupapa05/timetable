@@ -1,7 +1,8 @@
 const ROOM_PATCH_STATE = {
   originalSaveConfig: null,
   observer: null,
-  lastConfig: null
+  lastConfig: null,
+  injectTimer: null
 };
 
 initOptimizerRoomPatch();
@@ -10,16 +11,96 @@ function initOptimizerRoomPatch() {
   if (window.__optimizerRoomPatchLoaded) return;
   window.__optimizerRoomPatchLoaded = true;
 
+  injectRoomPatchStyles();
   patchSaveConfig();
+
   document.addEventListener('DOMContentLoaded', () => {
-    refreshAndInjectRoomSelects();
-    observeOptimizerArea();
+    startRoomPatchLoop();
   });
 
   if (document.readyState !== 'loading') {
+    startRoomPatchLoop();
+  }
+}
+
+function injectRoomPatchStyles() {
+  if (document.getElementById('optimizer-room-patch-style')) return;
+  const style = document.createElement('style');
+  style.id = 'optimizer-room-patch-style';
+  style.textContent = `
+    .optimizer-assignment-line {
+      display: grid !important;
+      grid-template-columns: minmax(112px, 1.1fr) minmax(92px, 0.8fr) minmax(104px, 1fr) auto !important;
+      gap: 10px !important;
+      align-items: start !important;
+    }
+
+    .optimizer-assignment-line > select[data-opt-field="subject"],
+    .optimizer-assignment-line > input[data-opt-field="fixedTargetHours"],
+    .optimizer-assignment-line > .optimizer-room-select {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    .optimizer-assignment-line > .optimizer-grade-checks {
+      grid-column: 1 / -1 !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px 12px !important;
+      min-width: 0 !important;
+      padding-top: 2px !important;
+    }
+
+    .optimizer-assignment-line > button[data-remove-assignment] {
+      grid-column: 4 !important;
+      grid-row: 1 !important;
+      min-width: 54px !important;
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+      white-space: nowrap !important;
+      justify-self: end !important;
+    }
+
+    .optimizer-room-select {
+      grid-column: 3 !important;
+      grid-row: 1 !important;
+    }
+
+    @media (max-width: 1200px) {
+      .optimizer-assignment-line {
+        grid-template-columns: 1fr 0.8fr auto !important;
+      }
+      .optimizer-room-select {
+        grid-column: 1 / 3 !important;
+        grid-row: 2 !important;
+      }
+      .optimizer-assignment-line > .optimizer-grade-checks {
+        grid-row: 3 !important;
+      }
+      .optimizer-assignment-line > button[data-remove-assignment] {
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        align-self: center !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function startRoomPatchLoop() {
+  injectRoomPatchStyles();
+  refreshAndInjectRoomSelects();
+  observeOptimizerArea();
+
+  let count = 0;
+  clearInterval(ROOM_PATCH_STATE.injectTimer);
+  ROOM_PATCH_STATE.injectTimer = setInterval(() => {
+    count += 1;
+    injectRoomPatchStyles();
     refreshAndInjectRoomSelects();
     observeOptimizerArea();
-  }
+    if (count >= 20) clearInterval(ROOM_PATCH_STATE.injectTimer);
+  }, 300);
 }
 
 function patchSaveConfig() {
@@ -49,16 +130,21 @@ function observeOptimizerArea() {
   if (!area || ROOM_PATCH_STATE.observer) return;
 
   ROOM_PATCH_STATE.observer = new MutationObserver(() => {
+    injectRoomPatchStyles();
     injectRoomSelects(ROOM_PATCH_STATE.lastConfig || {});
   });
   ROOM_PATCH_STATE.observer.observe(area, { childList: true, subtree: true });
 }
 
 function injectRoomSelects(config = {}) {
+  injectRoomPatchStyles();
   const roomNames = getRoomNames(config);
-  document.querySelectorAll('.optimizer-assignment-line').forEach((line) => {
+  const lines = document.querySelectorAll('.optimizer-assignment-line');
+
+  lines.forEach((line) => {
     const subjectSelect = line.querySelector('select[data-opt-field="subject"]');
     if (!subjectSelect) return;
+
     const teacherIndex = subjectSelect.dataset.teacherIndex;
     const assignmentIndex = subjectSelect.dataset.assignmentIndex;
     if (line.querySelector(`select[data-opt-field="roomName"][data-teacher-index="${teacherIndex}"][data-assignment-index="${assignmentIndex}"]`)) return;
@@ -95,7 +181,7 @@ function getRoomNames(config = {}) {
     ? config.rooms.map((room) => room.name || room.roomName || '').filter(Boolean)
     : [];
   const fromSpecialRooms = Array.isArray(config.specialRooms)
-    ? config.specialRooms.map((room) => room.name || room.roomName || room).filter(Boolean)
+    ? config.specialRooms.map((room) => typeof room === 'string' ? room : (room.name || room.roomName || '')).filter(Boolean)
     : [];
   const fromRoomAssignments = Array.isArray(config.roomAssignments)
     ? config.roomAssignments.map((room) => room.roomName || room.name || '').filter(Boolean)
@@ -112,7 +198,9 @@ async function saveAssignmentRoomName(teacherIndex, assignmentIndex, roomName) {
   try {
     if (!window.desktopApi?.loadConfig || !window.desktopApi?.saveConfig) return;
     const config = await window.desktopApi.loadConfig();
-    const teachers = config.optimizer?.planningTeachers || [];
+    config.optimizer = config.optimizer || {};
+    config.optimizer.planningTeachers = config.optimizer.planningTeachers || [];
+    const teachers = config.optimizer.planningTeachers;
     const assignment = teachers?.[teacherIndex]?.assignments?.[assignmentIndex];
     if (assignment) assignment.roomName = roomName || '';
     await window.desktopApi.saveConfig(enrichConfigWithOptimizerRooms(config));
