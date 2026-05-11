@@ -1,3 +1,5 @@
+import './optimizer-result-compact-patch.js';
+
 // Syncs standalone optimizer apply results into the visible renderer without reloading.
 // Kept separate from renderer.js to avoid touching the large legacy renderer module.
 
