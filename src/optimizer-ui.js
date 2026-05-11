@@ -27,8 +27,37 @@ function bindOptimizerEvents() {
 async function loadOptimizerConfig() {
   currentConfig = await window.desktopApi.loadConfig();
   optimizerSettings = normalizeOptimizerSettings(currentConfig || {});
+  optimizerResult = restoreOptimizerResult(currentConfig?.optimizer?.lastResult);
   renderOptimizerBaseSetup();
   renderOptimizerSetup();
+}
+
+function restoreOptimizerResult(savedResult) {
+  if (!savedResult || !Array.isArray(savedResult.rows)) return null;
+  const totalDedicatedHours = Number(savedResult.totalDedicatedHours || optimizerSettings?.totalDedicatedHours || calculateSchoolTotalHours(optimizerSettings?.subjectPools || []) || 0);
+  const rows = savedResult.rows.map((row, index) => ({
+    index,
+    rowId: row.rowId || `${index}_${row.teacherCode}_${row.subject}`,
+    teacherCode: row.teacherCode || `전담${index + 1}`,
+    teacherName: row.teacherName || row.teacherCode || `전담${index + 1}`,
+    subject: row.subject || '미정',
+    targetHours: Number(row.targetHours || 0),
+    recommendedHours: Number(row.recommendedHours || calculateCheckedClassHours(row.subject, row.recommendedClasses || [])),
+    recommendedClasses: Array.isArray(row.recommendedClasses) ? row.recommendedClasses : [],
+    grades: Array.isArray(row.grades) ? row.grades.map(Number).filter(Boolean) : [],
+    warnings: Array.isArray(row.warnings) ? row.warnings : [],
+    fixedTargetHours: row.fixedTargetHours ?? '',
+    preferredGrades: Array.isArray(row.preferredGrades) ? row.preferredGrades : []
+  }));
+  return {
+    ...savedResult,
+    totalDedicatedHours,
+    rows,
+    summary: savedResult.summary || {
+      recommendedTotal: rows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0),
+      gap: rows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0) - totalDedicatedHours
+    }
+  };
 }
 
 function normalizeSubjectPoolsForUI(items = []) {
@@ -108,6 +137,7 @@ function renderOptimizerBaseSetup() {
       const next = collectBaseSettingsFromUI({ keepEmpty: true });
       next.subjectPools.splice(index, 1);
       optimizerSettings = next;
+      optimizerResult = null;
       renderOptimizerBaseSetup();
     });
   });
@@ -219,6 +249,7 @@ function renderOptimizerSetup() {
       optimizerSettings = collectOptimizerSettingsFromUI();
       const firstSubject = normalizeSubjectPools(optimizerSettings.subjectPools || [])[0]?.subject || '';
       optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [] });
+      optimizerResult = null;
       renderOptimizerSetup();
     });
   });
@@ -232,6 +263,7 @@ function renderOptimizerSetup() {
         const firstSubject = normalizeSubjectPools(optimizerSettings.subjectPools || [])[0]?.subject || '';
         optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [] });
       }
+      optimizerResult = null;
       renderOptimizerSetup();
     });
   });
@@ -239,9 +271,14 @@ function renderOptimizerSetup() {
   area.querySelectorAll('select[data-opt-field="subject"]').forEach((select) => {
     select.addEventListener('change', () => {
       optimizerSettings = collectOptimizerSettingsFromUI();
+      optimizerResult = null;
       renderOptimizerSetup();
     });
   });
+
+  if (optimizerResult) {
+    renderOptimizerResultAsCards(optimizerResult);
+  }
 }
 
 function makeTeacherPlanCard(teacher, teacherIndex, subjectPools) {
@@ -336,11 +373,41 @@ function calculateAutoTotalHours(rows) {
   return fixed + autoCount * fixedAverage;
 }
 
-function runOptimizer() {
+async function runOptimizer() {
   currentConfig = currentConfig || {};
   optimizerSettings = collectOptimizerSettingsFromUI();
   optimizerResult = optimizeDedicatedAssignments(currentConfig, optimizerSettings);
+  currentConfig.optimizer = {
+    ...(currentConfig.optimizer || {}),
+    ...optimizerSettings,
+    lastResult: makeSerializableOptimizerResult(optimizerResult)
+  };
+  await window.desktopApi.saveConfig(currentConfig);
   renderOptimizerResultAsCards(optimizerResult);
+}
+
+function makeSerializableOptimizerResult(result) {
+  if (!result) return null;
+  return {
+    totalDedicatedHours: result.totalDedicatedHours,
+    fixedTotal: result.fixedTotal,
+    remainingHours: result.remainingHours,
+    autoTeacherCount: result.autoTeacherCount,
+    summary: result.summary,
+    rows: (result.rows || []).map((row) => ({
+      rowId: row.rowId,
+      teacherCode: row.teacherCode,
+      teacherName: row.teacherName,
+      subject: row.subject,
+      targetHours: row.targetHours,
+      recommendedHours: row.recommendedHours,
+      recommendedClasses: row.recommendedClasses,
+      grades: row.grades,
+      warnings: row.warnings,
+      fixedTargetHours: row.fixedTargetHours,
+      preferredGrades: row.preferredGrades
+    }))
+  };
 }
 
 function renderOptimizerResultAsCards(result) {
@@ -352,6 +419,30 @@ function renderOptimizerResultAsCards(result) {
     <div class="optimizer-conflict-summary">${conflicts.length ? `<span class="optimizer-warning">같은 과목 중복 ${conflicts.length}건</span>` : '<span>같은 과목 중복 없음</span>'}</div>
     <div class="optimizer-assignment-grid">${result.rows.map((row, rowIndex) => makeAssignmentCard(row, rowIndex, conflicts)).join('')}</div>
   `;
+
+  area.querySelectorAll('input[data-result-row]').forEach((input) => {
+    input.addEventListener('change', saveEditedOptimizerResult);
+  });
+}
+
+async function saveEditedOptimizerResult() {
+  if (!optimizerResult || !currentConfig) return;
+  const editedRows = collectEditedResultRows();
+  optimizerResult = {
+    ...optimizerResult,
+    rows: editedRows,
+    summary: {
+      recommendedTotal: editedRows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0),
+      gap: editedRows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0) - Number(optimizerResult.totalDedicatedHours || 0)
+    }
+  };
+  currentConfig.optimizer = {
+    ...(currentConfig.optimizer || {}),
+    ...collectOptimizerSettingsFromUI(),
+    lastResult: makeSerializableOptimizerResult(optimizerResult)
+  };
+  await window.desktopApi.saveConfig(currentConfig);
+  renderOptimizerResultAsCards(optimizerResult);
 }
 
 function makeAssignmentCard(row, rowIndex, conflicts) {
@@ -455,8 +546,16 @@ async function applyOptimizerResult() {
     return;
   }
   const editedRows = collectEditedResultRows();
+  optimizerResult = {
+    ...optimizerResult,
+    rows: editedRows,
+    summary: {
+      recommendedTotal: editedRows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0),
+      gap: editedRows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0) - Number(optimizerResult.totalDedicatedHours || 0)
+    }
+  };
   currentConfig.teachers = makeTeacherRowsFromEditedRows(editedRows);
-  currentConfig.optimizer = { ...collectOptimizerSettingsFromUI(), lastResult: { rows: editedRows.map((row) => ({ teacherCode: row.teacherCode, subject: row.subject, targetHours: row.targetHours, recommendedHours: row.recommendedHours, recommendedClasses: row.recommendedClasses, grades: row.grades, warnings: row.warnings })) } };
+  currentConfig.optimizer = { ...collectOptimizerSettingsFromUI(), lastResult: makeSerializableOptimizerResult(optimizerResult) };
   await window.desktopApi.saveConfig(currentConfig);
   alert('전담 배정을 적용했습니다. 화면을 새로 불러옵니다.');
   window.location.reload();
