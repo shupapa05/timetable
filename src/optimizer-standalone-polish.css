@@ -302,55 +302,26 @@
   }
 }
 
-/* 2026-05 standalone final polish: compact density, balanced cards, room hierarchy */
-
-#optimizerStandalonePanel .optimizer-standalone-wrap {
-  gap: 12px;
-}
-
-#optimizerStandalonePanel .optimizer-standalone-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-#optimizerStandalonePanel .os-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-#optimizerStandalonePanel .optimizer-grid-two > .optimizer-box {
-  min-height: 520px;
-}
-
+/* 2열 전담 카드 레이아웃 최종 안정화 */
 #optimizerStandalonePanel .os-teacher-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(420px, 1fr));
+  gap: 12px;
+
   align-content: start;
-  overflow: auto;
+  align-items: start;
+
+  overflow-y: auto;
 }
 
 #optimizerStandalonePanel .os-teacher-card {
-  min-height: 116px;
+  min-height: auto;
+  height: fit-content;
 }
 
 #optimizerStandalonePanel .os-assignment-row {
+  padding: 8px;
   align-items: start;
-}
-
-#optimizerStandalonePanel .os-assignment-row select,
-#optimizerStandalonePanel .os-assignment-row input {
-  height: 34px;
-  min-height: 34px;
-  font-size: 12px;
-  border-radius: 10px;
-}
-
-#optimizerStandalonePanel .os-assignment-row button.small {
-  height: 34px;
-  min-height: 34px;
-  padding: 0 8px;
-  border-radius: 10px;
 }
 
 #optimizerStandalonePanel .os-grade-checks {
@@ -358,279 +329,8 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
-#optimizerStandalonePanel .os-grade-checks label:has(input:checked) {
-  border-color: rgba(96, 165, 250, 0.85);
-  background: rgba(37, 99, 235, 0.28);
-  color: #eff6ff;
-}
-
-#optimizerStandalonePanel #osResultArea {
-  overflow: auto;
-}
-
-#optimizerStandalonePanel .os-result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(292px, 1fr));
-  align-items: stretch;
-}
-
-#optimizerStandalonePanel .os-result-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 268px;
-  height: 100%;
-}
-
-#optimizerStandalonePanel .os-result-card-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: start;
-}
-
-#optimizerStandalonePanel .os-result-card-head > div:first-child {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-#optimizerStandalonePanel .os-result-card-head strong {
-  line-height: 1.2;
-}
-
-#optimizerStandalonePanel .os-result-card-head span {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  padding: 3px 8px;
-  border: 1px solid rgba(96, 165, 250, 0.24);
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.54);
-  color: #dbeafe;
-  font-size: 12px;
-  font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#optimizerStandalonePanel .os-mini-badges {
-  display: grid;
-  grid-auto-flow: row;
-  gap: 4px;
-  justify-items: end;
-}
-
-#optimizerStandalonePanel .os-mini-badges em {
-  min-width: 72px;
-  text-align: center;
-  font-style: normal;
-  font-weight: 900;
-}
-
-#optimizerStandalonePanel .os-mini-badges em:first-child {
-  background: rgba(51, 65, 85, 0.72);
-  color: #e2e8f0;
-}
-
-#optimizerStandalonePanel .os-mini-badges em:last-child {
-  background: rgba(37, 99, 235, 0.26);
-  border-color: rgba(96, 165, 250, 0.7);
-  color: #bfdbfe;
-}
-
-#optimizerStandalonePanel .os-grade-blocks {
-  display: grid;
-  gap: 5px;
-  margin-top: 10px;
-}
-
-#optimizerStandalonePanel .os-grade-block {
-  align-items: start;
-  min-height: 30px;
-}
-
-#optimizerStandalonePanel .os-grade-block > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-#optimizerStandalonePanel .os-grade-block.is-disabled {
-  opacity: 0.42;
-}
-
-#optimizerStandalonePanel .os-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 38px;
-  min-height: 28px;
-  font-size: 12px;
-  font-weight: 900;
-  border-radius: 999px;
-}
-
-#optimizerStandalonePanel .os-chip input {
-  margin: 0;
-}
-
-#optimizerStandalonePanel .os-warning {
-  margin: 7px 0 0;
-  padding: 5px 8px;
-  border: 1px solid rgba(251, 146, 60, 0.36);
-  border-radius: 9px;
-  background: rgba(124, 45, 18, 0.2);
-}
-
-#optimizerStandalonePanel .os-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border-radius: 999px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-#optimizerStandalonePanel .os-badge.muted {
-  color: #94a3b8;
-  background: rgba(15, 23, 42, 0.42);
-}
-
-#teacherArea .optimizer-synced-card {
-  border: 1px solid rgba(96, 125, 169, 0.24);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-[data-theme="dark"] #teacherArea .optimizer-synced-card {
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.94));
-  border-color: rgba(96, 125, 169, 0.42);
-}
-
-#teacherArea .optimizer-synced-card .teacher-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-#teacherArea .optimizer-synced-card .teacher-card-head div {
-  display: grid;
-  gap: 2px;
-}
-
-#teacherArea .optimizer-synced-card .teacher-card-head strong {
-  font-size: 16px;
-}
-
-#teacherArea .optimizer-synced-card .teacher-card-head span,
-#teacherArea .optimizer-synced-card .teacher-card-head em {
-  color: #64748b;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 800;
-}
-
-[data-theme="dark"] #teacherArea .optimizer-synced-card .teacher-card-head span,
-[data-theme="dark"] #teacherArea .optimizer-synced-card .teacher-card-head em {
-  color: #aab7cf;
-}
-
-#teacherArea .optimizer-synced-row {
-  display: grid;
-  grid-template-columns: minmax(130px, 0.8fr) auto minmax(180px, 1.2fr);
-  gap: 10px;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  border-radius: 14px;
-  margin-top: 8px;
-  background: rgba(241, 245, 249, 0.72);
-}
-
-[data-theme="dark"] #teacherArea .optimizer-synced-row {
-  background: rgba(15, 23, 42, 0.42);
-  border-color: rgba(96, 125, 169, 0.28);
-}
-
-#teacherArea .optimizer-synced-row .assignment-main,
-#teacherArea .optimizer-synced-row .assignment-meta {
-  display: grid;
-  gap: 2px;
-}
-
-#teacherArea .optimizer-synced-row .assignment-main strong {
-  font-size: 14px;
-}
-
-#teacherArea .optimizer-synced-row .assignment-main span {
-  width: fit-content;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-[data-theme="dark"] #teacherArea .optimizer-synced-row .assignment-main span {
-  background: rgba(37, 99, 235, 0.22);
-  color: #bfdbfe;
-}
-
-#teacherArea .optimizer-synced-row .assignment-meta span {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-[data-theme="dark"] #teacherArea .optimizer-synced-row .assignment-meta span {
-  color: #cbd5e1;
-}
-
-#teacherArea .optimizer-synced-row .assignment-classes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 5px;
-}
-
-#teacherArea .optimizer-synced-row .chip {
-  min-height: 26px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-@media (max-width: 760px) {
-  #optimizerStandalonePanel .optimizer-standalone-head {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  #optimizerStandalonePanel .os-actions {
-    justify-content: stretch;
-  }
-
-  #optimizerStandalonePanel .os-actions button {
-    flex: 1 1 120px;
-  }
-
-  #optimizerStandalonePanel .os-grade-checks {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  #teacherArea .optimizer-synced-row {
+@media (max-width: 1100px) {
+  #optimizerStandalonePanel .os-teacher-list {
     grid-template-columns: 1fr;
-  }
-
-  #teacherArea .optimizer-synced-row .assignment-classes {
-    justify-content: flex-start;
   }
 }
