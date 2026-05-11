@@ -61,7 +61,6 @@
 
     <nav class="app-tabs" aria-label="화면 전환">
       <button class="tab-button active" type="button" data-tab-target="basicTab">학교 설정</button>
-      <button class="tab-button" type="button" data-tab-target="optimizerTab">전담 최적화</button>
       <button class="tab-button" type="button" data-tab-target="teacherTab">전담 배정</button>
       <button class="tab-button" type="button" data-tab-target="roomAssignTab">특별실 설정</button>
       <button class="tab-button" type="button" data-tab-target="excludeTab">제외시간</button>
@@ -95,7 +94,7 @@
         <div class="panel-head split">
           <div>
             <h2>전담 기본 조건</h2>
-            <p class="panel-note">전담 수와 전담 과목을 먼저 정합니다. 시수 고정과 학년·반 배정은 전담 최적화 탭에서 진행합니다.</p>
+            <p class="panel-note">전담 수와 전담 과목을 먼저 정합니다. 고정 시수와 학년·반 배정은 전담 배정 탭에서 진행합니다.</p>
           </div>
         </div>
         <div id="optimizerBaseArea" class="optimizer-area">
@@ -104,31 +103,29 @@
       </div>
     </section>
 
-    <section id="optimizerTab" class="tab-panel">
+    <section id="teacherTab" class="tab-panel">
       <div class="panel optimizer-panel">
         <div class="panel-head split">
           <div>
-            <h2>전담 최적화</h2>
-            <p class="panel-note">전담별 고정 총시수와 선택 학년을 정한 뒤, 자동 추천안 또는 수동 정리로 학년·반 배정을 만듭니다.</p>
+            <h2>전담 배정</h2>
+            <p class="panel-note">고정 총시수와 선택 학년을 정한 뒤 자동 추천 또는 수동 정리로 전담 배정을 완료합니다.</p>
           </div>
           <div class="optimizer-actions">
             <button id="optimizerRefreshBtn" type="button">저장된 설정 불러오기</button>
-            <button id="optimizerRunBtn" type="button" class="primary">전담 시수 최적화</button>
-            <button id="optimizerApplyBtn" type="button">추천 적용</button>
+            <button id="optimizerRunBtn" type="button" class="primary">자동 배정</button>
+            <button id="optimizerApplyBtn" type="button">배정 적용</button>
           </div>
         </div>
         <div id="optimizerArea" class="optimizer-area">
           <div class="optimizer-empty">학교 설정에서 전담 기본 조건을 입력한 뒤 사용할 수 있습니다.</div>
         </div>
       </div>
-    </section>
 
-    <section id="teacherTab" class="tab-panel">
-      <div class="panel">
+      <div class="panel advanced-teacher-panel">
         <div class="panel-head split">
           <div>
-            <h2>전담 배정</h2>
-            <p class="panel-note">최적화 결과를 확인하고, 필요한 경우 반 배정을 직접 수정합니다.</p>
+            <h2>고급 전담 수정</h2>
+            <p class="panel-note">자동 배정 적용 후 세부 배정을 직접 수정할 때 사용합니다.</p>
           </div>
         </div>
         <div id="teacherArea" class="teacher-area"></div>
