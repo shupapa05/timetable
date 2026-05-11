@@ -14,6 +14,7 @@ let result = null;
 window.addEventListener('DOMContentLoaded', async () => {
   injectStyles();
   injectStandaloneTab();
+  patchExistingTabButtons();
   await load();
 });
 
@@ -27,9 +28,9 @@ async function load() {
 function injectStandaloneTab() {
   if (document.getElementById('optimizerStandaloneTab')) return;
 
-  const tabButtons = document.querySelector('.tab-buttons, .tabs, nav, .tab-bar');
-  const firstPanel = document.querySelector('[id$="Tab"], .tab-panel, .panel');
-  const container = firstPanel?.parentElement || document.querySelector('main') || document.body;
+  const tabButtons = document.querySelector('.app-tabs');
+  const container = document.querySelector('.app') || document.querySelector('main') || document.body;
+  if (!tabButtons || !container) return;
 
   const button = document.createElement('button');
   button.type = 'button';
@@ -37,29 +38,49 @@ function injectStandaloneTab() {
   button.className = 'tab-button';
   button.dataset.tabTarget = 'optimizerStandalonePanel';
   button.textContent = '전담최적화';
-
-  if (tabButtons) {
-    tabButtons.appendChild(button);
-  } else {
-    document.body.insertBefore(button, document.body.firstChild);
-  }
+  tabButtons.insertBefore(button, tabButtons.children[2] || null);
 
   const panel = document.createElement('section');
   panel.id = 'optimizerStandalonePanel';
-  panel.className = 'tab-panel panel optimizer-standalone-panel';
-  panel.style.display = 'none';
+  panel.className = 'tab-panel optimizer-standalone-panel';
   panel.innerHTML = '<div id="optimizerStandaloneArea"></div>';
-  container.appendChild(panel);
 
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.tab-button').forEach((btn) => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-panel, [id$="Tab"]').forEach((el) => {
-      if (el.id !== 'optimizerStandalonePanel' && el.id !== 'optimizerStandaloneTab') el.style.display = 'none';
-    });
-    button.classList.add('active');
-    panel.style.display = '';
-    render();
+  const teacherTab = document.getElementById('teacherTab');
+  if (teacherTab?.parentElement) {
+    teacherTab.parentElement.insertBefore(panel, teacherTab.nextSibling);
+  } else {
+    container.appendChild(panel);
+  }
+
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    showStandalonePanel();
   });
+}
+
+function patchExistingTabButtons() {
+  document.querySelectorAll('.app-tabs .tab-button:not(#optimizerStandaloneTab)').forEach((button) => {
+    if (button.dataset.optimizerStandalonePatched === '1') return;
+    button.dataset.optimizerStandalonePatched = '1';
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.style.display = '';
+      });
+      document.getElementById('optimizerStandalonePanel')?.classList.remove('active');
+      document.getElementById('optimizerStandaloneTab')?.classList.remove('active');
+    });
+  });
+}
+
+function showStandalonePanel() {
+  document.querySelectorAll('.tab-panel').forEach((panel) => {
+    panel.style.display = '';
+    panel.classList.toggle('active', panel.id === 'optimizerStandalonePanel');
+  });
+  document.querySelectorAll('.app-tabs .tab-button').forEach((btn) => {
+    btn.classList.toggle('active', btn.id === 'optimizerStandaloneTab');
+  });
+  render();
 }
 
 function render() {
@@ -76,9 +97,9 @@ function render() {
       <div class="optimizer-standalone-head">
         <div>
           <h2>전담최적화</h2>
-          <p>자동 추천을 만든 뒤 전담배정으로 적용합니다. 기존 전담배정 화면은 최종 수동 수정용으로 그대로 둡니다.</p>
+          <p>자동 추천을 만든 뒤 전담배정으로 적용합니다. 전담배정 화면은 최종 수동 수정용으로 유지됩니다.</p>
         </div>
-        <div class="optimizer-actions">
+        <div class="optimizer-actions os-actions">
           <button id="optimizerStandaloneReload" type="button">새로고침</button>
           <button id="optimizerStandaloneSave" type="button">조건 저장</button>
           <button id="optimizerStandaloneRun" type="button" class="primary">자동배정</button>
@@ -88,23 +109,25 @@ function render() {
 
       <div class="optimizer-grid-two">
         <section class="optimizer-box">
-          <h3>학교 기준 조건</h3>
+          <div class="os-section-head"><h3>학교 기준 조건</h3><span class="os-badge">총 ${calculateSchoolTotalHours(subjectPools)}시간</span></div>
           <label class="optimizer-field-row"><span>전담 수</span><input id="osTeacherCount" type="number" min="0" value="${teacherCount}"></label>
-          <table class="optimizer-table os-subject-table">
-            <thead><tr><th>과목</th><th>1학년</th><th>2학년</th><th>3학년</th><th>4학년</th><th>5학년</th><th>6학년</th><th></th></tr></thead>
-            <tbody id="osSubjectRows">${subjectPools.map((pool, index) => makeSubjectRow(pool, index)).join('')}</tbody>
-          </table>
-          <button id="osAddSubject" type="button">+ 과목 추가</button>
+          <div class="os-table-scroll">
+            <table class="optimizer-table os-subject-table">
+              <thead><tr><th>과목</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th></th></tr></thead>
+              <tbody id="osSubjectRows">${subjectPools.map((pool, index) => makeSubjectRow(pool, index)).join('')}</tbody>
+            </table>
+          </div>
+          <button id="osAddSubject" type="button" class="small">+ 과목 추가</button>
         </section>
 
         <section class="optimizer-box">
-          <h3>전담별 조건</h3>
+          <div class="os-section-head"><h3>전담별 조건</h3><span class="os-badge">${teacherCount}명</span></div>
           <div id="osTeacherRows" class="os-teacher-list">${planningTeachers.map((teacher, index) => makeTeacherCard(teacher, index, subjectPools)).join('')}</div>
         </section>
       </div>
 
-      <section class="optimizer-box">
-        <h3>자동배정 결과</h3>
+      <section class="optimizer-box optimizer-result-box">
+        <div class="os-section-head"><h3>자동배정 결과</h3>${result ? makeResultSummaryBadge(result) : '<span class="os-badge muted">대기</span>'}</div>
         <div id="osResultArea">${result ? makeResultHtml(result) : '<div class="optimizer-empty">자동배정을 실행하면 결과가 표시됩니다.</div>'}</div>
       </section>
     </div>
@@ -168,13 +191,13 @@ function makeSubjectRow(pool, index) {
   return `<tr>
     <td><select data-os-subject-index="${index}" data-os-field="subject">${SUBJECT_OPTIONS.map((subject) => `<option value="${escapeAttr(subject)}" ${subject === pool.subject ? 'selected' : ''}>${escapeHtml(subject || '선택')}</option>`).join('')}</select></td>
     ${[1,2,3,4,5,6].map((grade) => `<td><input type="number" min="0" data-os-subject-index="${index}" data-os-field="gradeHours" data-grade="${grade}" value="${Number(gradeHours[grade] || gradeHours[String(grade)] || 0) || ''}" placeholder="-"></td>`).join('')}
-    <td><button type="button" data-os-remove-subject="${index}">삭제</button></td>
+    <td><button type="button" class="small" data-os-remove-subject="${index}">삭제</button></td>
   </tr>`;
 }
 
 function makeTeacherCard(teacher, teacherIndex, subjectPools) {
   return `<div class="os-teacher-card">
-    <div class="os-card-head"><strong>${escapeHtml(teacher.teacherCode || `전담${teacherIndex + 1}`)}</strong><button type="button" data-os-add-assignment="${teacherIndex}">+ 과목</button></div>
+    <div class="os-card-head"><strong>${escapeHtml(teacher.teacherCode || `전담${teacherIndex + 1}`)}</strong><button type="button" class="small" data-os-add-assignment="${teacherIndex}">+ 과목</button></div>
     ${(teacher.assignments || []).map((assignment, assignmentIndex) => makeAssignmentRow(assignment, teacherIndex, assignmentIndex, subjectPools)).join('')}
   </div>`;
 }
@@ -182,24 +205,36 @@ function makeTeacherCard(teacher, teacherIndex, subjectPools) {
 function makeAssignmentRow(assignment, teacherIndex, assignmentIndex, subjectPools) {
   const allowedGrades = getAllowedGradesForSubject(assignment.subject, subjectPools);
   return `<div class="os-assignment-row">
-    <select data-os-field="assignmentSubject" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeSubjectOptions(subjectPools, assignment.subject)}</select>
-    <input type="number" min="0" data-os-field="fixedTargetHours" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}" value="${Number(assignment.fixedTargetHours || 0) || ''}" placeholder="자동시수">
-    <select data-os-field="roomName" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeRoomOptions(assignment.roomName || '')}</select>
-    <button type="button" data-os-remove-assignment="${teacherIndex}-${assignmentIndex}">삭제</button>
+    <select title="과목" data-os-field="assignmentSubject" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeSubjectOptions(subjectPools, assignment.subject)}</select>
+    <input title="고정 총시수" type="number" min="0" data-os-field="fixedTargetHours" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}" value="${Number(assignment.fixedTargetHours || 0) || ''}" placeholder="자동시수">
+    <select title="장소" data-os-field="roomName" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeRoomOptions(assignment.roomName || '')}</select>
+    <button type="button" class="small" data-os-remove-assignment="${teacherIndex}-${assignmentIndex}">삭제</button>
     <div class="os-grade-checks">${allowedGrades.map((grade) => `<label><input type="checkbox" data-os-field="preferredGrades" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}" value="${grade}" ${assignment.preferredGrades?.includes(grade) ? 'checked' : ''}>${grade}학년</label>`).join('')}</div>
   </div>`;
 }
 
+function makeResultSummaryBadge(res) {
+  const recommended = Number(res.summary?.recommendedTotal || 0);
+  const target = Number(res.totalDedicatedHours || 0);
+  const gap = recommended - target;
+  const tone = gap === 0 ? 'good' : 'warn';
+  return `<span class="os-badge ${tone}">추천 ${recommended}h / 목표 ${target}h</span>`;
+}
+
 function makeResultHtml(res) {
   const conflicts = findClassConflicts(res.rows || []);
-  return `<div class="os-result-summary">추천 ${res.summary?.recommendedTotal || 0}시간 / 목표 ${res.totalDedicatedHours || 0}시간 ${conflicts.length ? `<span class="os-warning">같은 과목 중복 ${conflicts.length}건</span>` : ''}</div>
-  <div class="os-result-grid">${(res.rows || []).map((row, rowIndex) => makeResultCard(row, rowIndex, conflicts)).join('')}</div>`;
+  const conflictText = conflicts.length ? `<div class="os-warning compact">${conflicts.map((item) => `${escapeHtml(item.subject)} ${escapeHtml(item.classCode)}`).join(' · ')} 중복</div>` : '';
+  return `${conflictText}<div class="os-result-grid">${(res.rows || []).map((row, rowIndex) => makeResultCard(row, rowIndex, conflicts)).join('')}</div>`;
 }
 
 function makeResultCard(row, rowIndex, conflicts) {
   const classMap = makeClassMap(config?.gradeClasses || []);
+  const room = row.roomName ? `<span class="os-room">${escapeHtml(row.roomName)}</span>` : '<span class="os-room muted">장소 없음</span>';
   return `<div class="os-result-card">
-    <div class="os-card-head"><strong>${escapeHtml(row.teacherCode)}</strong><span>${escapeHtml(row.subject)}${row.roomName ? ` · ${escapeHtml(row.roomName)}` : ''} · 목표 ${row.targetHours} / 추천 ${row.recommendedHours}</span></div>
+    <div class="os-result-card-head">
+      <div><strong>${escapeHtml(row.teacherCode)}</strong><span>${escapeHtml(row.subject)} · ${room}</span></div>
+      <div class="os-mini-badges"><em>목표 ${row.targetHours || 0}</em><em>추천 ${row.recommendedHours || 0}</em></div>
+    </div>
     ${(row.warnings || []).map((w) => `<div class="os-warning">${escapeHtml(w)}</div>`).join('')}
     <div class="os-grade-blocks">${[1,2,3,4,5,6].map((grade) => makeResultGrade(row, rowIndex, grade, classMap[grade] || 0, conflicts)).join('')}</div>
   </div>`;
@@ -374,7 +409,7 @@ function getRoomNameForAssignment(teacherCode, subject) {
 
 function calculateSchoolTotalHours(subjectPools) {
   const classMap = makeClassMap(config?.gradeClasses || []);
-  return normalizeSubjectPools(subjectPools).reduce((sum, pool) => sum + pool.grades.reduce((s, grade) => s + Number(classMap[grade] || 0) * Number(pool.gradeHours?.[grade] || pool.gradeHours?.[String(grade)] || 0), 0), 0);
+  return normalizeSubjectPools(subjectPools).reduce((sum, pool) => sum + pool.grades.reduce((s, grade) => s + Number(classMap[grade] || 0) * Number(pool.gradeHours?.[grade] || pool.gradeHours?.[String(grade)] || 0), 0);
 }
 
 function calculateCheckedClassHours(subject, classCodes) {
@@ -406,30 +441,68 @@ function injectStyles() {
   const style = document.createElement('style');
   style.id = 'optimizer-standalone-style';
   style.textContent = `
-    .optimizer-standalone-wrap { padding: 18px; display: grid; gap: 16px; }
-    .optimizer-standalone-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
-    .optimizer-standalone-head h2 { margin:0 0 6px; }
-    .optimizer-standalone-head p { margin:0; color:#64748b; }
-    .optimizer-actions { display:flex; flex-wrap:wrap; gap:8px; }
-    .optimizer-grid-two { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-    .optimizer-box { background:#fff; border:1px solid #e5e7eb; border-radius:18px; padding:16px; box-shadow:0 8px 20px rgba(15,23,42,.06); }
-    .optimizer-field-row { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
-    .optimizer-table { width:100%; border-collapse:collapse; }
-    .optimizer-table th, .optimizer-table td { border-bottom:1px solid #e5e7eb; padding:6px; text-align:center; }
-    .optimizer-table input, .optimizer-table select, .os-assignment-row input, .os-assignment-row select { width:100%; min-width:0; padding:8px; border:1px solid #cbd5e1; border-radius:10px; }
-    .os-teacher-list { display:grid; gap:12px; }
-    .os-teacher-card, .os-result-card { border:1px solid #e5e7eb; border-radius:14px; padding:12px; background:#f8fafc; }
-    .os-card-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px; }
-    .os-assignment-row { display:grid; grid-template-columns: 1fr .8fr 1fr auto; gap:8px; align-items:start; margin:8px 0; }
-    .os-grade-checks { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:8px 12px; }
-    .os-result-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
-    .os-grade-block { margin-top:8px; }
-    .os-chip { display:inline-flex; gap:4px; align-items:center; border:1px solid #cbd5e1; border-radius:999px; padding:5px 8px; margin:3px; background:#fff; }
-    .os-chip.is-selected { background:#dbeafe; border-color:#60a5fa; }
-    .os-chip.is-conflict { background:#fee2e2; border-color:#f87171; }
-    .os-warning { color:#b45309; font-size:13px; }
+    .app-tabs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+    .optimizer-standalone-wrap { display:grid; gap:14px; }
+    .optimizer-standalone-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; padding:16px 18px; border:1px solid var(--line); border-radius:10px; background:var(--panel); box-shadow:var(--shadow); }
+    .optimizer-standalone-head h2 { margin:0 0 5px; font-size:18px; }
+    .optimizer-standalone-head p { margin:0; color:var(--muted); font-size:13px; line-height:1.45; }
+    .os-actions { display:flex; flex-wrap:wrap; gap:7px; justify-content:flex-end; }
+    .optimizer-grid-two { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+    .optimizer-box { min-width:0; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; box-shadow:var(--shadow); }
+    .os-section-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px; }
+    .os-section-head h3 { margin:0; font-size:15px; }
+    .os-badge, .os-mini-badges em { display:inline-flex; align-items:center; min-height:24px; padding:4px 8px; border-radius:999px; border:1px solid var(--line); background:var(--panel-soft); color:var(--muted); font-size:12px; font-style:normal; font-weight:800; white-space:nowrap; }
+    .os-badge.good { color:#166534; border-color:#86efac; background:#dcfce7; }
+    .os-badge.warn { color:#92400e; border-color:#fbbf24; background:#fef3c7; }
+    .optimizer-field-row { display:grid; grid-template-columns:80px minmax(0,120px); gap:8px; align-items:center; margin-bottom:10px; color:var(--muted); font-size:13px; font-weight:800; }
+    .os-table-scroll { overflow:auto; border:1px solid var(--line-soft); border-radius:9px; margin-bottom:10px; }
+    .optimizer-table { width:100%; border-collapse:collapse; min-width:620px; }
+    .optimizer-table th, .optimizer-table td { border-bottom:1px solid var(--line-soft); padding:6px; text-align:center; font-size:12px; }
+    .optimizer-table tr:last-child td { border-bottom:0; }
+    .optimizer-table input, .optimizer-table select, .os-assignment-row input, .os-assignment-row select { width:100%; min-width:0; padding:7px 8px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--text); }
+    .os-teacher-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; max-height:520px; overflow:auto; padding-right:2px; }
+    .os-teacher-card, .os-result-card { border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--panel-soft); }
+    .os-card-head { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:8px; }
+    .os-card-head strong { font-size:14px; }
+    .os-assignment-row { display:grid; grid-template-columns:1fr 88px 1fr auto; gap:7px; align-items:start; margin:7px 0; }
+    .os-grade-checks { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px 10px; color:var(--muted); font-size:12px; font-weight:800; }
+    .optimizer-result-box { padding-bottom:12px; }
+    #osResultArea { max-height:580px; overflow:auto; padding-right:2px; }
+    .os-result-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; align-items:stretch; }
+    .os-result-card { min-height:210px; display:flex; flex-direction:column; gap:8px; }
+    .os-result-card-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; padding-bottom:8px; border-bottom:1px solid var(--line-soft); }
+    .os-result-card-head strong { display:block; font-size:15px; color:var(--text); margin-bottom:3px; }
+    .os-result-card-head span { display:block; color:var(--muted); font-size:12px; font-weight:800; }
+    .os-mini-badges { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
+    .os-mini-badges em { min-height:22px; padding:3px 7px; }
+    .os-grade-blocks { display:grid; gap:5px; }
+    .os-grade-block { display:grid; grid-template-columns:44px minmax(0,1fr); gap:6px; align-items:start; }
+    .os-grade-block strong { color:var(--muted); font-size:12px; padding-top:6px; }
+    .os-chip { display:inline-flex; gap:3px; align-items:center; border:1px solid var(--line); border-radius:999px; padding:4px 7px; margin:2px; background:var(--panel); color:var(--text); font-size:12px; font-weight:800; }
+    .os-chip input { width:auto; margin:0; }
+    .os-chip.is-selected { background:rgba(35,100,216,.14); border-color:var(--primary); color:var(--primary-dark); }
+    .os-chip.is-conflict { background:#fee2e2; border-color:#ef4444; color:#991b1b; }
+    .os-warning { color:#b45309; font-size:12px; font-weight:800; line-height:1.35; }
+    .os-warning.compact { margin:0 0 8px; padding:8px 10px; border:1px solid #fbbf24; border-radius:8px; background:#fffbeb; }
     .is-disabled { opacity:.35; }
-    @media (max-width: 1100px) { .optimizer-grid-two { grid-template-columns:1fr; } .os-assignment-row { grid-template-columns:1fr 1fr; } .os-assignment-row button { grid-column:2; } }
+    .optimizer-empty { padding:16px; border:1px dashed var(--line); border-radius:9px; color:var(--muted); background:var(--panel-soft); font-size:13px; font-weight:800; }
+    body.dark-mode .optimizer-standalone-head,
+    body.dark-mode .optimizer-box,
+    body.dark-mode .os-teacher-card,
+    body.dark-mode .os-result-card,
+    body.dark-mode .os-chip,
+    body.dark-mode .optimizer-table input,
+    body.dark-mode .optimizer-table select,
+    body.dark-mode .os-assignment-row input,
+    body.dark-mode .os-assignment-row select { background:var(--panel); color:var(--text); border-color:var(--line); }
+    body.dark-mode .os-badge,
+    body.dark-mode .os-mini-badges em,
+    body.dark-mode .optimizer-empty { background:var(--panel-soft); color:var(--muted); border-color:var(--line); }
+    body.dark-mode .os-chip.is-selected { background:rgba(59,130,246,.22); color:#bfdbfe; border-color:#60a5fa; }
+    body.dark-mode .os-chip.is-conflict { background:rgba(127,29,29,.72); color:#fecaca; border-color:#f87171; }
+    body.dark-mode .os-warning.compact { background:rgba(120,53,15,.35); color:#fcd34d; border-color:#92400e; }
+    @media (max-width:1100px) { .optimizer-grid-two { grid-template-columns:1fr; } .optimizer-standalone-head { flex-direction:column; } .os-actions { justify-content:flex-start; } }
+    @media (max-width:720px) { .os-assignment-row { grid-template-columns:1fr 1fr; } .os-assignment-row button { grid-column:2; } .os-result-grid { grid-template-columns:1fr; } }
   `;
   document.head.appendChild(style);
 }
