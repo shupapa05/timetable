@@ -11,6 +11,7 @@ function initOptimizerRoomPatch() {
   if (window.__optimizerRoomPatchLoaded) return;
   window.__optimizerRoomPatchLoaded = true;
 
+  injectRoomPatchStyles();
   patchSaveConfig();
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -22,7 +23,72 @@ function initOptimizerRoomPatch() {
   }
 }
 
+function injectRoomPatchStyles() {
+  if (document.getElementById('optimizer-room-patch-style')) return;
+  const style = document.createElement('style');
+  style.id = 'optimizer-room-patch-style';
+  style.textContent = `
+    .optimizer-assignment-line {
+      display: grid !important;
+      grid-template-columns: minmax(112px, 1.1fr) minmax(92px, 0.8fr) minmax(104px, 1fr) auto !important;
+      gap: 10px !important;
+      align-items: start !important;
+    }
+
+    .optimizer-assignment-line > select[data-opt-field="subject"],
+    .optimizer-assignment-line > input[data-opt-field="fixedTargetHours"],
+    .optimizer-assignment-line > .optimizer-room-select {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    .optimizer-assignment-line > .optimizer-grade-checks {
+      grid-column: 1 / -1 !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px 12px !important;
+      min-width: 0 !important;
+      padding-top: 2px !important;
+    }
+
+    .optimizer-assignment-line > button[data-remove-assignment] {
+      grid-column: 4 !important;
+      grid-row: 1 !important;
+      min-width: 54px !important;
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+      white-space: nowrap !important;
+      justify-self: end !important;
+    }
+
+    .optimizer-room-select {
+      grid-column: 3 !important;
+      grid-row: 1 !important;
+    }
+
+    @media (max-width: 1200px) {
+      .optimizer-assignment-line {
+        grid-template-columns: 1fr 0.8fr auto !important;
+      }
+      .optimizer-room-select {
+        grid-column: 1 / 3 !important;
+        grid-row: 2 !important;
+      }
+      .optimizer-assignment-line > .optimizer-grade-checks {
+        grid-row: 3 !important;
+      }
+      .optimizer-assignment-line > button[data-remove-assignment] {
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        align-self: center !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function startRoomPatchLoop() {
+  injectRoomPatchStyles();
   refreshAndInjectRoomSelects();
   observeOptimizerArea();
 
@@ -30,6 +96,7 @@ function startRoomPatchLoop() {
   clearInterval(ROOM_PATCH_STATE.injectTimer);
   ROOM_PATCH_STATE.injectTimer = setInterval(() => {
     count += 1;
+    injectRoomPatchStyles();
     refreshAndInjectRoomSelects();
     observeOptimizerArea();
     if (count >= 20) clearInterval(ROOM_PATCH_STATE.injectTimer);
@@ -63,12 +130,14 @@ function observeOptimizerArea() {
   if (!area || ROOM_PATCH_STATE.observer) return;
 
   ROOM_PATCH_STATE.observer = new MutationObserver(() => {
+    injectRoomPatchStyles();
     injectRoomSelects(ROOM_PATCH_STATE.lastConfig || {});
   });
   ROOM_PATCH_STATE.observer.observe(area, { childList: true, subtree: true });
 }
 
 function injectRoomSelects(config = {}) {
+  injectRoomPatchStyles();
   const roomNames = getRoomNames(config);
   const lines = document.querySelectorAll('.optimizer-assignment-line');
 
@@ -88,7 +157,6 @@ function injectRoomSelects(config = {}) {
     select.dataset.assignmentIndex = assignmentIndex;
     select.innerHTML = makeRoomOptions(roomNames, savedRoomName);
     select.title = '특별실/장소';
-    select.style.minWidth = '120px';
     select.addEventListener('change', () => saveAssignmentRoomName(Number(teacherIndex), Number(assignmentIndex), select.value));
 
     const removeButton = line.querySelector('[data-remove-assignment]');
