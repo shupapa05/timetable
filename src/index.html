@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./teacher-assignment-polish.css">
   <link rel="stylesheet" href="./assignment-card-visual.css">
   <link rel="stylesheet" href="./app-flow-polish.css">
+  <link rel="stylesheet" href="./optimizer-polish.css">
 </head>
 <body>
   <main class="app">
@@ -86,6 +87,23 @@
             <button id="addRoomBtn" class="small">추가</button>
           </div>
           <div id="roomArea" class="stack"></div>
+        </div>
+      </div>
+
+      <div class="panel optimizer-panel">
+        <div class="panel-head split">
+          <div>
+            <h2>전담 과목·시수 최적화</h2>
+            <p class="panel-note">전담 배정 탭에 입력한 과목 안에서 고정 시수는 유지하고, 나머지 전담의 시수와 학년 묶음을 추천합니다.</p>
+          </div>
+          <div class="optimizer-actions">
+            <button id="optimizerRefreshBtn" type="button">저장된 설정 불러오기</button>
+            <button id="optimizerRunBtn" type="button" class="primary">전담 시수 최적화</button>
+            <button id="optimizerApplyBtn" type="button">추천 적용</button>
+          </div>
+        </div>
+        <div id="optimizerArea" class="optimizer-area">
+          <div class="optimizer-empty">전담 배정 탭에서 전담 과목을 입력하고 설정 저장 후 사용할 수 있습니다.</div>
         </div>
       </div>
     </section>
@@ -216,5 +234,6 @@
   </main>
 
   <script type="module" src="./renderer.js"></script>
+  <script type="module" src="./optimizer-ui.js"></script>
 </body>
 </html>
