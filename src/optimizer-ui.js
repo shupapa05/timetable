@@ -14,6 +14,7 @@ let currentConfig = null;
 let optimizerSettings = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
+  injectOptimizerRoomStyles();
   bindOptimizerEvents();
   await loadOptimizerConfig();
 });
@@ -41,6 +42,7 @@ function restoreOptimizerResult(savedResult) {
     teacherCode: row.teacherCode || `전담${index + 1}`,
     teacherName: row.teacherName || row.teacherCode || `전담${index + 1}`,
     subject: row.subject || '미정',
+    roomName: row.roomName || getRoomNameForAssignment(row.teacherCode, row.subject),
     targetHours: Number(row.targetHours || 0),
     recommendedHours: Number(row.recommendedHours || calculateCheckedClassHours(row.subject, row.recommendedClasses || [])),
     recommendedClasses: Array.isArray(row.recommendedClasses) ? row.recommendedClasses : [],
@@ -58,6 +60,58 @@ function restoreOptimizerResult(savedResult) {
       gap: rows.reduce((sum, row) => sum + Number(row.recommendedHours || 0), 0) - totalDedicatedHours
     }
   };
+}
+
+function injectOptimizerRoomStyles() {
+  if (document.getElementById('optimizer-room-inline-style')) return;
+  const style = document.createElement('style');
+  style.id = 'optimizer-room-inline-style';
+  style.textContent = `
+    .optimizer-assignment-line {
+      display: grid !important;
+      grid-template-columns: minmax(110px, 1fr) minmax(86px, 0.75fr) minmax(110px, 1fr) auto !important;
+      gap: 10px !important;
+      align-items: start !important;
+    }
+    .optimizer-assignment-line > select[data-opt-field="subject"],
+    .optimizer-assignment-line > input[data-opt-field="fixedTargetHours"],
+    .optimizer-assignment-line > select[data-opt-field="roomName"] {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    .optimizer-assignment-line > .optimizer-grade-checks {
+      grid-column: 1 / -1 !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px 12px !important;
+      padding-top: 2px !important;
+    }
+    .optimizer-assignment-line > button[data-remove-assignment] {
+      grid-column: 4 !important;
+      grid-row: 1 !important;
+      min-width: 54px !important;
+      white-space: nowrap !important;
+      justify-self: end !important;
+    }
+    @media (max-width: 1200px) {
+      .optimizer-assignment-line {
+        grid-template-columns: 1fr 0.8fr auto !important;
+      }
+      .optimizer-assignment-line > select[data-opt-field="roomName"] {
+        grid-column: 1 / 3 !important;
+        grid-row: 2 !important;
+      }
+      .optimizer-assignment-line > .optimizer-grade-checks {
+        grid-row: 3 !important;
+      }
+      .optimizer-assignment-line > button[data-remove-assignment] {
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        align-self: center !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 function normalizeSubjectPoolsForUI(items = []) {
@@ -219,6 +273,7 @@ async function saveOptimizerBaseSettings() {
 function renderOptimizerSetup() {
   const area = document.getElementById('optimizerArea');
   if (!area) return;
+  injectOptimizerRoomStyles();
 
   const teacherCount = Number(optimizerSettings?.teacherCount || 0);
   const subjectPools = normalizeSubjectPools(optimizerSettings?.subjectPools || []);
@@ -248,7 +303,7 @@ function renderOptimizerSetup() {
       const teacherIndex = Number(button.dataset.addAssignment || 0);
       optimizerSettings = collectOptimizerSettingsFromUI();
       const firstSubject = normalizeSubjectPools(optimizerSettings.subjectPools || [])[0]?.subject || '';
-      optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [] });
+      optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [], roomName: '' });
       optimizerResult = null;
       renderOptimizerSetup();
     });
@@ -261,7 +316,7 @@ function renderOptimizerSetup() {
       optimizerSettings.planningTeachers[teacherIndex].assignments.splice(assignmentIndex, 1);
       if (!optimizerSettings.planningTeachers[teacherIndex].assignments.length) {
         const firstSubject = normalizeSubjectPools(optimizerSettings.subjectPools || [])[0]?.subject || '';
-        optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [] });
+        optimizerSettings.planningTeachers[teacherIndex].assignments.push({ subject: firstSubject, weeklyHours: 1, fixedTargetHours: '', preferredGrades: [], assignedClasses: [], roomName: '' });
       }
       optimizerResult = null;
       renderOptimizerSetup();
@@ -304,6 +359,7 @@ function makeAssignmentPlanLine(assignment, teacherIndex, assignmentIndex, subje
     <div class="optimizer-assignment-line">
       <select class="optimizer-text-input" data-opt-field="subject" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeSubjectOptions(subjectPools, assignment.subject)}</select>
       <input class="optimizer-target-input" type="number" min="0" data-opt-field="fixedTargetHours" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}" value="${Number(assignment.fixedTargetHours || 0) || ''}" placeholder="자동시수">
+      <select class="optimizer-text-input" data-opt-field="roomName" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}">${makeRoomOptions(assignment.roomName || '')}</select>
       <div class="optimizer-grade-checks">
         ${allowedGrades.map((grade) => `<label><input type="checkbox" data-opt-field="preferredGrades" data-teacher-index="${teacherIndex}" data-assignment-index="${assignmentIndex}" value="${grade}" ${assignment.preferredGrades?.includes(grade) ? 'checked' : ''}>${grade}학년</label>`).join('')}
       </div>
@@ -316,6 +372,44 @@ function makeSubjectOptions(subjectPools, selected) {
   const subjects = subjectPools.map((pool) => pool.subject).filter(Boolean);
   if (!subjects.length) return '<option value="">학교 설정에서 과목 추가 필요</option>';
   return subjects.map((subject) => `<option value="${escapeAttr(subject)}" ${subject === (selected || '') ? 'selected' : ''}>${escapeHtml(subject)}</option>`).join('');
+}
+
+function makeRoomOptions(selected = '') {
+  const rooms = getRoomNames();
+  return ['', ...rooms].map((roomName) => `<option value="${escapeAttr(roomName)}" ${roomName === selected ? 'selected' : ''}>${escapeHtml(roomName || '장소 없음')}</option>`).join('');
+}
+
+function getRoomNames() {
+  const rooms = [];
+  if (Array.isArray(currentConfig?.rooms)) {
+    currentConfig.rooms.forEach((room) => {
+      const name = String(room.name || room.roomName || '').trim();
+      if (name) rooms.push(name);
+    });
+  }
+  if (Array.isArray(currentConfig?.specialRooms)) {
+    currentConfig.specialRooms.forEach((room) => {
+      const name = typeof room === 'string' ? room : String(room.name || room.roomName || '').trim();
+      if (name) rooms.push(name);
+    });
+  }
+  if (Array.isArray(currentConfig?.roomAssignments)) {
+    currentConfig.roomAssignments.forEach((room) => {
+      const name = String(room.roomName || room.name || '').trim();
+      if (name) rooms.push(name);
+    });
+  }
+  return [...new Set(rooms)];
+}
+
+function getRoomNameForAssignment(teacherCode, subject) {
+  const planningTeachers = optimizerSettings?.planningTeachers || [];
+  for (const teacher of planningTeachers) {
+    if (String(teacher.teacherCode || '').trim() !== String(teacherCode || '').trim()) continue;
+    const assignment = (teacher.assignments || []).find((item) => item.subject === subject);
+    if (assignment?.roomName) return assignment.roomName;
+  }
+  return '';
 }
 
 function getAllowedGradesForSubject(subject, subjectPools) {
@@ -377,6 +471,7 @@ async function runOptimizer() {
   currentConfig = currentConfig || {};
   optimizerSettings = collectOptimizerSettingsFromUI();
   optimizerResult = optimizeDedicatedAssignments(currentConfig, optimizerSettings);
+  optimizerResult.rows = optimizerResult.rows.map((row) => ({ ...row, roomName: getRoomNameForAssignment(row.teacherCode, row.subject) }));
   currentConfig.optimizer = {
     ...(currentConfig.optimizer || {}),
     ...optimizerSettings,
@@ -399,6 +494,7 @@ function makeSerializableOptimizerResult(result) {
       teacherCode: row.teacherCode,
       teacherName: row.teacherName,
       subject: row.subject,
+      roomName: row.roomName || '',
       targetHours: row.targetHours,
       recommendedHours: row.recommendedHours,
       recommendedClasses: row.recommendedClasses,
@@ -449,7 +545,7 @@ function makeAssignmentCard(row, rowIndex, conflicts) {
   const classMap = makeClassMap(currentConfig?.gradeClasses || []);
   return `
     <div class="optimizer-assignment-card" data-row-index="${rowIndex}">
-      <div class="optimizer-assignment-head"><div><strong>${escapeHtml(row.teacherCode)}</strong><span>${escapeHtml(row.subject)} · 목표 ${row.targetHours}시간 · 추천 ${row.recommendedHours}시간</span></div>${row.warnings.length ? `<div>${row.warnings.map((w) => `<span class="optimizer-warning">${escapeHtml(w)}</span>`).join('')}</div>` : '<span>적정</span>'}</div>
+      <div class="optimizer-assignment-head"><div><strong>${escapeHtml(row.teacherCode)}</strong><span>${escapeHtml(row.subject)}${row.roomName ? ` · ${escapeHtml(row.roomName)}` : ''} · 목표 ${row.targetHours}시간 · 추천 ${row.recommendedHours}시간</span></div>${row.warnings.length ? `<div>${row.warnings.map((w) => `<span class="optimizer-warning">${escapeHtml(w)}</span>`).join('')}</div>` : '<span>적정</span>'}</div>
       <div class="optimizer-grade-blocks">${[1, 2, 3, 4, 5, 6].map((grade) => makeGradeBlock(row, rowIndex, grade, classMap[grade] || 0, conflicts)).join('')}</div>
     </div>
   `;
@@ -529,7 +625,7 @@ function makeTeacherRowsFromEditedRows(rows = []) {
         teacherCode: row.teacherCode,
         teacherName: row.teacherName || row.teacherCode,
         subject: row.subject,
-        roomName: '',
+        roomName: row.roomName || getRoomNameForAssignment(row.teacherCode, row.subject),
         weeklyHours,
         blockPattern: '1',
         assignedClasses
