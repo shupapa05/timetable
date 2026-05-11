@@ -5,7 +5,7 @@ import {
   normalizeSubjectPools
 } from './timetable-optimizer.js';
 
-const SUBJECTS = ['', '국어', '도덕', '사회', '수학', '과학', '실과', '체육', '음악', '미술', '영어', '기타'];
+const SUBJECTS = ['', '국어', '수학', '바른 생활', '슬기로운 생활', '즐거운 생활', '사회', '도덕', '과학', '실과', '체육', '음악', '미술', '영어', '창의적 체험활동', '기타'];
 let config = null;
 let settings = null;
 let result = null;
@@ -43,7 +43,7 @@ function ensureTab() {
     button.type = 'button';
     button.dataset.tabTarget = 'optimizerStandalonePanel';
     button.textContent = '전담최적화';
-    nav.insertBefore(button, nav.children[2] || null);
+    nav.insertBefore(button, nav.children[1] || null);
   }
 
   let panel = document.getElementById('optimizerStandalonePanel');
@@ -53,7 +53,7 @@ function ensureTab() {
     panel.className = 'tab-panel optimizer-standalone-panel';
     panel.innerHTML = '<div id="optimizerStandaloneArea"></div>';
     const teacherTab = document.getElementById('teacherTab');
-    if (teacherTab?.parentElement) teacherTab.parentElement.insertBefore(panel, teacherTab.nextSibling);
+    if (teacherTab?.parentElement) teacherTab.parentElement.insertBefore(panel, teacherTab);
     else app.appendChild(panel);
   }
 
@@ -250,11 +250,20 @@ function collectSettings(options = {}) {
 }
 
 async function saveSettings() {
-  settings = collectSettings();
+  const saveButton = document.getElementById('optimizerStandaloneSave');
+  settings = collectSettings({ keepEmpty: true });
   config.optimizerStandalone = { ...(config.optimizerStandalone || {}), ...settings, lastResult: result ? serializeResult(result) : null };
+  config.optimizer = { ...(config.optimizer || {}), ...settings, lastResult: result ? serializeResult(result) : null };
   await window.desktopApi.saveConfig(config);
-  alert('전담최적화 조건을 저장했습니다.');
-  render();
+  if (saveButton) {
+    const oldText = saveButton.textContent;
+    saveButton.textContent = '저장 완료';
+    saveButton.disabled = true;
+    setTimeout(() => {
+      saveButton.textContent = oldText || '조건 저장';
+      saveButton.disabled = false;
+    }, 900);
+  }
 }
 
 async function runOptimizer() {
@@ -394,23 +403,6 @@ function injectStyle() {
   if (document.getElementById('optimizer-standalone-style')) return;
   const style = document.createElement('style');
   style.id = 'optimizer-standalone-style';
-  style.textContent = `
-    .app-tabs{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
-    .optimizer-standalone-wrap{display:grid;gap:14px;}
-    .optimizer-standalone-head,.optimizer-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow);}
-    .optimizer-standalone-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
-    .optimizer-standalone-head h2{margin:0 0 5px;font-size:18px}.optimizer-standalone-head p{margin:0;color:var(--muted);font-size:13px}
-    .os-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.optimizer-grid-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
-    .os-section-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.os-section-head h3{margin:0;font-size:15px}
-    .os-badge,.os-mini-badges em{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--panel-soft);color:var(--muted);font-size:12px;font-style:normal;font-weight:800;white-space:nowrap}.os-badge.good{color:#166534;border-color:#86efac;background:#dcfce7}.os-badge.warn{color:#92400e;border-color:#fbbf24;background:#fef3c7}
-    .optimizer-field-row{display:grid;grid-template-columns:80px minmax(0,120px);gap:8px;align-items:center;margin-bottom:10px;color:var(--muted);font-size:13px;font-weight:800}
-    .os-table-scroll{overflow:auto;border:1px solid var(--line-soft);border-radius:9px;margin-bottom:10px}.optimizer-table{width:100%;border-collapse:collapse;min-width:620px}.optimizer-table th,.optimizer-table td{border-bottom:1px solid var(--line-soft);padding:6px;text-align:center;font-size:12px}
-    .optimizer-table input,.optimizer-table select,.os-assignment-row input,.os-assignment-row select{width:100%;min-width:0;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
-    .os-teacher-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;max-height:520px;overflow:auto}.os-teacher-card,.os-result-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--panel-soft)}
-    .os-card-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.os-assignment-row{display:grid;grid-template-columns:1fr 88px 1fr auto;gap:7px;align-items:start;margin:7px 0}.os-grade-checks{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 10px;color:var(--muted);font-size:12px;font-weight:800}
-    #osResultArea{max-height:580px;overflow:auto}.os-result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}.os-result-card{min-height:210px;display:flex;flex-direction:column;gap:8px}.os-result-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding-bottom:8px;border-bottom:1px solid var(--line-soft)}.os-result-card-head strong{display:block;font-size:15px}.os-result-card-head span{display:block;color:var(--muted);font-size:12px;font-weight:800}.os-mini-badges{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
-    .os-grade-blocks{display:grid;gap:5px}.os-grade-block{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;align-items:start}.os-grade-block strong{color:var(--muted);font-size:12px;padding-top:6px}.os-chip{display:inline-flex;gap:3px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:4px 7px;margin:2px;background:var(--panel);color:var(--text);font-size:12px;font-weight:800}.os-chip input{width:auto;margin:0}.os-chip.is-selected{background:rgba(35,100,216,.14);border-color:var(--primary);color:var(--primary-dark)}.os-chip.is-conflict{background:#fee2e2;border-color:#ef4444;color:#991b1b}.os-warning{color:#b45309;font-size:12px;font-weight:800}.os-warning.compact{margin:0 0 8px;padding:8px 10px;border:1px solid #fbbf24;border-radius:8px;background:#fffbeb}.is-disabled{opacity:.35}.optimizer-empty{padding:16px;border:1px dashed var(--line);border-radius:9px;color:var(--muted);background:var(--panel-soft);font-size:13px;font-weight:800}
-    @media(max-width:1100px){.optimizer-grid-two{grid-template-columns:1fr}.optimizer-standalone-head{flex-direction:column}.os-actions{justify-content:flex-start}}@media(max-width:720px){.os-assignment-row{grid-template-columns:1fr 1fr}.os-result-grid{grid-template-columns:1fr}}
-  `;
+  style.textContent = '';
   document.head.appendChild(style);
 }
