@@ -184,8 +184,7 @@ async function saveOptimizerBaseSettings() {
   renderOptimizerBaseSetup();
   renderOptimizerSetup();
   alert('전담 기본 조건을 저장했습니다.');
-}
-
+}\n
 function renderOptimizerSetup() {
   const area = document.getElementById('optimizerArea');
   if (!area) return;
@@ -349,7 +348,7 @@ function renderOptimizerResultAsCards(result) {
   const conflicts = findClassConflicts(result.rows);
   area.innerHTML = `
     <div class="panel-head optimizer-result-head"><div><h2>자동 배정 결과</h2><p class="panel-note">추천 총시수 ${result.summary.recommendedTotal}시간 / 자동 목표 ${result.totalDedicatedHours}시간</p></div></div>
-    <div class="optimizer-conflict-summary">${conflicts.length ? `<span class="optimizer-warning">중복 ${conflicts.length}건</span>` : '<span>중복 없음</span>'}</div>
+    <div class="optimizer-conflict-summary">${conflicts.length ? `<span class="optimizer-warning">같은 과목 중복 ${conflicts.length}건</span>` : '<span>같은 과목 중복 없음</span>'}</div>
     <div class="optimizer-assignment-grid">${result.rows.map((row, rowIndex) => makeAssignmentCard(row, rowIndex, conflicts)).join('')}</div>
   `;
 }
@@ -371,7 +370,7 @@ function makeGradeBlock(row, rowIndex, grade, classCount, conflicts) {
   return `<div class="optimizer-grade-block ${disabled ? 'is-disabled' : ''}"><strong>${grade}학년</strong><div class="optimizer-class-buttons">${Array.from({ length: classCount }, (_, index) => {
     const classCode = `${grade}-${index + 1}`;
     const checked = row.recommendedClasses.includes(classCode);
-    const conflict = conflicts.some((item) => item.classCode === classCode);
+    const conflict = conflicts.some((item) => item.subject === row.subject && item.classCode === classCode);
     return `<label class="optimizer-class-chip ${checked ? 'is-selected' : ''} ${conflict && checked ? 'is-conflict' : ''}"><input type="checkbox" data-result-row="${rowIndex}" value="${classCode}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>${index + 1}반</label>`;
   }).join('')}</div></div>`;
 }
@@ -385,10 +384,11 @@ function makeClassMap(gradeClasses) {
 function findClassConflicts(rows) {
   const owners = new Map();
   rows.forEach((row) => row.recommendedClasses.forEach((classCode) => {
-    if (!owners.has(classCode)) owners.set(classCode, []);
-    owners.get(classCode).push(row.teacherCode);
+    const key = `${row.subject}__${classCode}`;
+    if (!owners.has(key)) owners.set(key, { subject: row.subject, classCode, owners: [] });
+    owners.get(key).owners.push(row.teacherCode);
   }));
-  return [...owners.entries()].filter(([, list]) => list.length > 1).map(([classCode, owners]) => ({ classCode, owners }));
+  return [...owners.values()].filter((item) => item.owners.length > 1);
 }
 
 function collectEditedResultRows() {
@@ -415,13 +415,46 @@ function calculateCheckedClassHours(subject, classCodes = []) {
   }, 0);
 }
 
+function makeTeacherRowsFromEditedRows(rows = []) {
+  const subjectPools = normalizeSubjectPools(optimizerSettings?.subjectPools || []);
+  const result = [];
+
+  rows.forEach((row) => {
+    if (row.subject === '미정') return;
+
+    const groups = new Map();
+    (row.recommendedClasses || []).forEach((classCode) => {
+      const grade = Number(String(classCode).split('-')[0]);
+      const hour = Number(subjectPools.find((item) => item.subject === row.subject)?.gradeHours?.[grade]
+        || subjectPools.find((item) => item.subject === row.subject)?.gradeHours?.[String(grade)]
+        || 1);
+      if (!groups.has(hour)) groups.set(hour, []);
+      groups.get(hour).push(classCode);
+    });
+
+    groups.forEach((assignedClasses, weeklyHours) => {
+      result.push({
+        teacherCode: row.teacherCode,
+        teacherName: row.teacherName || row.teacherCode,
+        subject: row.subject,
+        roomName: '',
+        weeklyHours,
+        blockPattern: '1',
+        assignedClasses
+      });
+    });
+  });
+
+  return result;
+}
+
 async function applyOptimizerResult() {
   if (!optimizerResult || !currentConfig) {
     alert('먼저 자동 배정을 실행하세요.');
     return;
   }
   const editedRows = collectEditedResultRows();
-  currentConfig.teachers = editedRows.map((row) => ({ teacherCode: row.teacherCode, teacherName: row.teacherName || row.teacherCode, subject: row.subject === '미정' ? '' : row.subject, roomName: '', weeklyHours: 1, blockPattern: '1', assignedClasses: row.recommendedClasses }));
+  currentConfig.teachers = makeTeacherRowsFromEditedRows(editedRows);
   currentConfig.optimizer = { ...collectOptimizerSettingsFromUI(), lastResult: { rows: editedRows.map((row) => ({ teacherCode: row.teacherCode, subject: row.subject, targetHours: row.targetHours, recommendedHours: row.recommendedHours, recommendedClasses: row.recommendedClasses, grades: row.grades, warnings: row.warnings })) } };
   await window.desktopApi.saveConfig(currentConfig);
   alert('전담 배정을 적용했습니다. 고급 전담 수정 영역에서 확인할 수 있습니다.');
