@@ -118,9 +118,10 @@ select:focus {
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  flex-wrap: wrap;
+  gap: 14px;
   margin-bottom: 18px;
   padding: 18px 20px;
   border: 1px solid rgba(215, 225, 238, 0.9);
@@ -128,6 +129,8 @@ select:focus {
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 10px 30px rgba(22, 32, 51, 0.07);
 }
+
+
 
 .eyebrow {
   font-size: 13px;
@@ -150,14 +153,6 @@ h1 {
 h2 {
   font-size: 16px;
   line-height: 1.25;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
 }
 
 .autosave-status {
@@ -2158,6 +2153,14 @@ body {
   position: sticky;
   top: 12px;
   z-index: 40;
+
+  display: grid;
+  grid-template-columns: 1fr 520px;
+  align-items: center;
+  gap: 14px;
+  align-items: center;
+  gap: 14px;
+
   padding: 14px 18px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
@@ -2336,10 +2339,17 @@ h1 {
 }
 
 .actions {
+  width: 620px;
+  justify-self: end;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
   gap: 6px;
 }
 
 .actions button {
+  width: 100%;
   justify-content: center;
   white-space: nowrap;
 }
@@ -2358,11 +2368,46 @@ h1 {
 }
 
 .profile-strip {
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background: var(--panel);
+  display:flex;
+  align-items:end;
+  gap:10px;
+  flex-wrap:nowrap;
+
+  margin-bottom:12px;
+  border-radius:8px;
+  background:var(--panel);
 }
 
+.profile-strip > label{
+  flex:1;
+  min-width:0;
+}
+
+.profile-strip > button{
+  flex:none;
+  width:auto;
+  white-space:nowrap;
+}
+
+.profile-select-wrap{
+  flex:1;
+}
+
+#profileDeleteBtn{
+  min-width:80px;
+}
+
+.profile-strip label{
+  display:flex;
+  flex-direction:column;
+}
+
+#profileDeleteBtn{
+  width:auto;
+  min-width:80px;
+  height:36px;
+  margin-top:auto;
+}
 .profile-strip label span,
 .tone-control,
 .manual-bank-head label {
@@ -3397,3 +3442,49 @@ body[data-theme="dark"] .tab-button.active {
 body[data-theme="dark"] .panel-head {
   background: var(--panel);
 }
+
+#profileDeleteBtn{
+  background:#c62828;
+  border-color:#c62828;
+  color:#fff;
+}
+
+#profileDeleteBtn:hover{
+  background:#b71c1c;
+  border-color:#b71c1c;
+}
+
+#schoolProfileBar.profile-strip{
+  display:grid;
+  grid-template-columns: minmax(260px, 1fr) 120px minmax(320px, 1fr) 88px 72px;
+  align-items:end;
+  gap:8px;
+}
+
+#schoolProfileBar.profile-strip label{
+  min-width:0;
+}
+
+#schoolProfileBar.profile-strip button{
+  width:auto;
+  min-width:0;
+  white-space:nowrap;
+}
+
+#profileLoadBtn,
+#profileDeleteBtn{
+  height:40px;
+}
+
+#profileDeleteBtn{
+  background:#c62828;
+  border-color:#c62828;
+  color:#fff;
+}
+
+#profileDeleteBtn:hover{
+  background:#b71c1c;
+  border-color:#b71c1c;
+}
+
+

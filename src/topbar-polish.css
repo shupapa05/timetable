@@ -25,93 +25,44 @@
   letter-spacing: -0.04em;
 }
 
+/* 버튼 영역: 3개씩 2줄 */
 .actions {
+  width: 560px;
+  max-width: 560px;
+  justify-self: end;
+
   display: grid;
-  grid-template-columns: 124px 232px;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   align-items: stretch;
-  justify-content: end;
-  max-width: 362px;
 }
 
 .actions button {
+  width: 100%;
+  min-width: 0;
   min-height: 39px;
   padding: 8px 13px;
   border-radius: 7px;
   font-size: 14px;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.actions #themeToggleBtn {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.actions #saveBtn {
-  grid-column: 2;
-  grid-row: 1;
-  min-width: 232px;
-}
-
-.actions #exportConfigBtn,
-.actions #printPreviewBtn {
-  grid-column: 1;
-}
-
-.actions #importConfigBtn,
-.actions #directPrintBtn {
-  grid-column: 2;
-}
-
-.actions #excelSaveBtn {
-  grid-column: 1 / -1;
   justify-self: stretch;
 }
 
-@media (min-width: 1180px) {
-  .actions {
-    grid-template-columns: 124px 124px 104px;
-    max-width: 368px;
-  }
-
-  .actions #themeToggleBtn {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .actions #saveBtn {
-    grid-column: 2 / 4;
-    grid-row: 1;
-    min-width: 0;
-  }
-
-  .actions #exportConfigBtn {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .actions #importConfigBtn {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .actions #excelSaveBtn {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .actions #printPreviewBtn {
-    grid-column: 1;
-    grid-row: 3;
-  }
-
-  .actions #directPrintBtn {
-    grid-column: 2;
-    grid-row: 3;
-  }
+/* 기존 버튼별 강제 배치 제거 */
+.actions #themeToggleBtn,
+.actions #saveBtn,
+.actions #exportConfigBtn,
+.actions #importConfigBtn,
+.actions #excelSaveBtn,
+.actions #printPreviewBtn,
+.actions #directPrintBtn {
+  grid-column: auto;
+  grid-row: auto;
+  min-width: 0;
 }
 
+/* 좁은 화면 대응 */
 @media (max-width: 860px) {
   .topbar {
     display: grid;
@@ -122,11 +73,5 @@
     width: 100%;
     max-width: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .actions #saveBtn,
-  .actions #excelSaveBtn {
-    grid-column: 1 / -1;
-    min-width: 0;
   }
 }
