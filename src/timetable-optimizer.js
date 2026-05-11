@@ -70,7 +70,12 @@ export function getDefaultOptimizerSettings(config = {}) {
     subjectPools,
     planningTeachers,
     teacherTargets: {},
-    options: { sameGradePriority: true }
+    options: {
+      sameGradePriority: true,
+      adjacentGradePriority: true,
+      lowGradeMoreHours: false,
+      equalGradeHours: false
+    }
   };
 }
 
@@ -120,6 +125,13 @@ export function getCurrentDedicatedHours(config = {}) {
 export function optimizeDedicatedAssignments(config = {}, inputSettings = {}) {
   const subjectPools = normalizeSubjectPools(inputSettings.subjectPools || []);
   const planningTeachers = normalizePlanningTeachers(inputSettings.planningTeachers || [], inputSettings.teacherCount || 0, subjectPools);
+  const options = {
+    sameGradePriority: true,
+    adjacentGradePriority: true,
+    lowGradeMoreHours: false,
+    equalGradeHours: false,
+    ...(inputSettings.options || {})
+  };
   const rows = flattenPlanningTeachers(planningTeachers).map((row, index) => makeRow(row, index));
   const fixedTotal = rows.reduce((sum, row) => sum + (row.isFixed ? row.targetHours : 0), 0);
   const autoRows = rows.filter((row) => !row.isFixed);
@@ -129,10 +141,16 @@ export function optimizeDedicatedAssignments(config = {}, inputSettings = {}) {
   const extra = autoRows.length ? remain % autoRows.length : 0;
   let autoIndex = 0;
   const gradeClasses = normalizeGradeClasses(config.gradeClasses || []);
+  const subjectGradeUsage = new Map();
 
   const resultRows = rows.map((row) => {
     const targetHours = row.isFixed ? row.targetHours : base + (autoIndex++ < extra ? 1 : 0);
-    const rec = recommend(row, targetHours, gradeClasses, subjectPools);
+    const rec = recommend(row, targetHours, gradeClasses, subjectPools, options, subjectGradeUsage);
+    rec.classCodes.forEach((code) => {
+      const grade = Number(code.split('-')[0]);
+      const key = `${row.subject}__${grade}`;
+      subjectGradeUsage.set(key, (subjectGradeUsage.get(key) || 0) + 1);
+    });
     return { ...row, targetHours, recommendedClasses: rec.classCodes, recommendedHours: rec.classCodes.length, grades: rec.grades, warnings: rec.warnings };
   });
 
@@ -151,30 +169,127 @@ function makeRow(row, index) {
   return { ...row, index, rowId: `${row.teacherIndex}_${row.assignmentIndex}_${row.teacherCode}_${row.subject}`, isFixed: targetHours > 0, targetHours };
 }
 
-function recommend(row, targetHours, gradeClasses, subjectPools) {
-  const allowedGrades = getSubjectGrades(row.subject, subjectPools);
-  const preferred = row.preferredGrades?.length ? row.preferredGrades.filter((g) => allowedGrades.includes(g)) : preferredGradeOrder(allowedGrades, gradeClasses);
-  const selected = [];
-  for (const grade of preferred) {
-    const codes = makeGradeClassCodes(gradeClasses, grade);
-    const remain = targetHours - selected.length;
-    if (remain <= 0) break;
-    if (codes.length <= remain) selected.push(...codes);
-    else if (!selected.length) selected.push(...codes.slice(0, remain));
+function recommend(row, targetHours, gradeClasses, subjectPools, options = {}, subjectGradeUsage = new Map()) {
+  const allowedGrades = getSubjectGrades(row.subject, subjectPools)
+    .filter((grade) => getGradeClassCount(gradeClasses, grade) > 0);
+  const explicitGrades = Array.isArray(row.preferredGrades) && row.preferredGrades.length
+    ? row.preferredGrades.filter((grade) => allowedGrades.includes(Number(grade)))
+    : [];
+
+  const candidateGradeSets = explicitGrades.length
+    ? buildExplicitGradeSets(explicitGrades)
+    : buildBalancedGradeSets(allowedGrades, gradeClasses, targetHours, options, row.subject, subjectGradeUsage);
+
+  let best = null;
+  for (const gradeSet of candidateGradeSets) {
+    const classCodes = selectClassesFromGradeSet(gradeSet, gradeClasses, targetHours, options, row.subject, subjectGradeUsage);
+    const score = scoreCandidate(gradeSet, classCodes, targetHours, options, row.subject, subjectGradeUsage);
+    if (!best || score > best.score) best = { gradeSet, classCodes, score };
   }
-  for (const grade of allowedGrades) {
-    for (const code of makeGradeClassCodes(gradeClasses, grade)) {
-      if (selected.length >= targetHours) break;
-      if (!selected.includes(code)) selected.push(code);
-    }
-  }
-  const classCodes = [...new Set(selected)].slice(0, targetHours);
+
+  const classCodes = best?.classCodes?.length ? best.classCodes : [];
   const grades = [...new Set(classCodes.map((code) => Number(code.split('-')[0])))].sort((a, b) => a - b);
   const warnings = [];
   if (classCodes.length !== targetHours) warnings.push(`목표 ${targetHours}시간 / 추천 ${classCodes.length}시간`);
   if (grades.length >= 3) warnings.push('3개 학년 이상 혼합 배정');
   if (grades.length === 2 && Math.abs(grades[0] - grades[1]) > 1) warnings.push('인접하지 않은 학년 혼합');
   return { classCodes, grades, warnings };
+}
+
+function buildExplicitGradeSets(grades) {
+  const unique = [...new Set(grades.map(Number))].sort((a, b) => a - b);
+  return unique.length ? [unique] : [];
+}
+
+function buildBalancedGradeSets(allowedGrades, gradeClasses, targetHours, options, subject, subjectGradeUsage) {
+  const existing = allowedGrades.filter((grade) => getGradeClassCount(gradeClasses, grade) > 0);
+  const single = existing.map((grade) => [grade]);
+  const preferredPairs = [[1, 2], [3, 4], [5, 6]]
+    .map((pair) => pair.filter((grade) => existing.includes(grade)))
+    .filter((pair) => pair.length === 2);
+  const adjacentPairs = [[2, 3], [4, 5]]
+    .map((pair) => pair.filter((grade) => existing.includes(grade)))
+    .filter((pair) => pair.length === 2);
+  const full = existing.length ? [existing] : [];
+
+  const candidates = [...single, ...preferredPairs, ...adjacentPairs, ...full];
+  return candidates
+    .map((grades) => [...new Set(grades)].sort((a, b) => a - b))
+    .filter((grades, index, arr) => grades.length && arr.findIndex((other) => other.join(',') === grades.join(',')) === index)
+    .sort((a, b) => {
+      const scoreA = scoreGradeSetShape(a, targetHours, gradeClasses, options, subject, subjectGradeUsage);
+      const scoreB = scoreGradeSetShape(b, targetHours, gradeClasses, options, subject, subjectGradeUsage);
+      return scoreB - scoreA;
+    });
+}
+
+function scoreGradeSetShape(grades, targetHours, gradeClasses, options, subject, subjectGradeUsage) {
+  let score = 0;
+  const capacity = grades.reduce((sum, grade) => sum + getGradeClassCount(gradeClasses, grade), 0);
+  const shortage = Math.max(0, targetHours - capacity);
+  if (grades.length === 1) score += 1000;
+  if (grades.length === 2 && isPreferredPair(grades)) score += 750;
+  else if (grades.length === 2 && isAdjacentPair(grades)) score += 550;
+  if (grades.length >= 3) score -= 350 * grades.length;
+  score -= shortage * 200;
+  score -= Math.abs(capacity - targetHours) * 6;
+  score -= usagePenalty(grades, subject, subjectGradeUsage);
+  if (options.lowGradeMoreHours) score += grades.reduce((sum, grade) => sum + (7 - grade) * 5, 0);
+  return score;
+}
+
+function selectClassesFromGradeSet(grades, gradeClasses, targetHours, options, subject, subjectGradeUsage) {
+  if (!targetHours) return [];
+  const selected = [];
+  const gradeOrder = orderGradesForSelection(grades, options, subject, subjectGradeUsage);
+  if (options.equalGradeHours && gradeOrder.length > 1) {
+    const perGrade = Math.floor(targetHours / gradeOrder.length);
+    let remainder = targetHours % gradeOrder.length;
+    gradeOrder.forEach((grade) => {
+      const count = Math.min(getGradeClassCount(gradeClasses, grade), perGrade + (remainder-- > 0 ? 1 : 0));
+      selected.push(...makeGradeClassCodes(gradeClasses, grade).slice(0, count));
+    });
+  } else {
+    for (const grade of gradeOrder) {
+      const remaining = targetHours - selected.length;
+      if (remaining <= 0) break;
+      const codes = makeGradeClassCodes(gradeClasses, grade);
+      const take = Math.min(codes.length, remaining);
+      selected.push(...codes.slice(0, take));
+    }
+  }
+
+  if (selected.length < targetHours) {
+    for (const grade of gradeOrder) {
+      for (const code of makeGradeClassCodes(gradeClasses, grade)) {
+        if (selected.length >= targetHours) break;
+        if (!selected.includes(code)) selected.push(code);
+      }
+    }
+  }
+  return [...new Set(selected)].slice(0, targetHours);
+}
+
+function orderGradesForSelection(grades, options, subject, subjectGradeUsage) {
+  const sorted = [...grades].sort((a, b) => {
+    const usageA = subjectGradeUsage.get(`${subject}__${a}`) || 0;
+    const usageB = subjectGradeUsage.get(`${subject}__${b}`) || 0;
+    if (usageA !== usageB) return usageA - usageB;
+    if (options.lowGradeMoreHours) return a - b;
+    return a - b;
+  });
+  return sorted;
+}
+
+function scoreCandidate(grades, classCodes, targetHours, options, subject, subjectGradeUsage) {
+  let score = scoreGradeSetShape(grades, targetHours, [{ grade: 1, classCount: 999 }], options, subject, subjectGradeUsage);
+  score += Math.min(classCodes.length, targetHours) * 10;
+  score -= Math.abs(targetHours - classCodes.length) * 500;
+  return score;
+}
+
+function usagePenalty(grades, subject, subjectGradeUsage) {
+  return grades.reduce((sum, grade) => sum + (subjectGradeUsage.get(`${subject}__${grade}`) || 0) * 20, 0);
 }
 
 function normalizeGradeClasses(items) {
@@ -185,14 +300,22 @@ function getSubjectGrades(subject, subjectPools) {
   return subjectPools.find((pool) => pool.subject === subject)?.grades?.length ? subjectPools.find((pool) => pool.subject === subject).grades : [1, 2, 3, 4, 5, 6];
 }
 
-function preferredGradeOrder(allowedGrades, gradeClasses) {
-  const existing = gradeClasses.filter((item) => item.classCount > 0 && allowedGrades.includes(item.grade)).map((item) => item.grade);
-  const order = [5, 6, 3, 4, 1, 2];
-  return order.filter((g) => existing.includes(g)).concat(existing.filter((g) => !order.includes(g)));
+function getGradeClassCount(gradeClasses, grade) {
+  return Number(gradeClasses.find((item) => item.grade === grade)?.classCount || 0);
+}
+
+function isPreferredPair(grades) {
+  const key = [...grades].sort((a, b) => a - b).join('-');
+  return ['1-2', '3-4', '5-6'].includes(key);
+}
+
+function isAdjacentPair(grades) {
+  const sorted = [...grades].sort((a, b) => a - b);
+  return sorted.length === 2 && Math.abs(sorted[0] - sorted[1]) === 1;
 }
 
 function makeGradeClassCodes(gradeClasses, grade) {
-  const count = Number(gradeClasses.find((item) => item.grade === grade)?.classCount || 0);
+  const count = getGradeClassCount(gradeClasses, grade);
   return Array.from({ length: count }, (_, index) => `${grade}-${index + 1}`);
 }
 
