@@ -1,9 +1,11 @@
 export function getDefaultOptimizerSettings(config = {}) {
   const planningTeachers = makeInitialPlanningTeachers(config);
+  const subjectPools = makeInitialSubjectPools(config, planningTeachers);
   const currentTotal = getCurrentDedicatedHours({ teachers: planningTeachers });
   return {
     teacherCount: planningTeachers.length || 0,
     totalDedicatedHours: currentTotal || 0,
+    subjectPools,
     planningTeachers,
     teacherTargets: {},
     options: {
@@ -21,15 +23,17 @@ export function getDefaultOptimizerSettings(config = {}) {
 export function normalizeOptimizerSettings(config = {}) {
   const base = getDefaultOptimizerSettings(config);
   const saved = config.optimizer || {};
+  const teacherCount = Number(saved.teacherCount || base.teacherCount || 0);
+  const subjectPools = normalizeSubjectPools(saved.subjectPools || base.subjectPools || []);
   const savedPlanning = Array.isArray(saved.planningTeachers) ? saved.planningTeachers : base.planningTeachers;
-  const teacherCount = Number(saved.teacherCount || savedPlanning.length || base.teacherCount || 0);
-  const planningTeachers = normalizePlanningTeachers(savedPlanning, teacherCount);
+  const planningTeachers = normalizePlanningTeachers(savedPlanning, teacherCount, subjectPools);
 
   return {
     ...base,
     ...saved,
     teacherCount,
     totalDedicatedHours: Number(saved.totalDedicatedHours || base.totalDedicatedHours || 0),
+    subjectPools,
     planningTeachers,
     teacherTargets: {
       ...base.teacherTargets,
@@ -58,14 +62,29 @@ export function makeInitialPlanningTeachers(config = {}) {
   return [];
 }
 
-export function normalizePlanningTeachers(items = [], teacherCount = 0) {
+export function makeInitialSubjectPools(config = {}, planningTeachers = []) {
+  const subjects = [...new Set((planningTeachers || []).map((teacher) => String(teacher.subject || '').trim()).filter(Boolean))];
+  return subjects.map((subject) => ({ subject, grades: getExistingGrades(config) }));
+}
+
+export function normalizeSubjectPools(items = []) {
+  return (Array.isArray(items) ? items : [])
+    .map((item) => ({
+      subject: String(item.subject || '').trim(),
+      grades: Array.isArray(item.grades) ? item.grades.map(Number).filter((grade) => grade >= 1 && grade <= 6) : []
+    }))
+    .filter((item) => item.subject);
+}
+
+export function normalizePlanningTeachers(items = [], teacherCount = 0, subjectPools = []) {
   const count = Math.max(0, Number(teacherCount || items.length || 0));
+  const firstSubject = subjectPools[0]?.subject || '';
   return Array.from({ length: count }, (_unused, index) => {
     const item = items[index] || {};
     return {
       teacherCode: String(item.teacherCode || `전담${index + 1}`).trim(),
       teacherName: String(item.teacherName || item.teacherCode || `전담${index + 1}`).trim(),
-      subject: String(item.subject || '').trim(),
+      subject: String(item.subject || firstSubject || '').trim(),
       weeklyHours: Math.max(1, Number(item.weeklyHours || 1)),
       fixedTargetHours: item.fixedTargetHours === undefined || item.fixedTargetHours === null ? '' : item.fixedTargetHours,
       preferredGrades: Array.isArray(item.preferredGrades) ? item.preferredGrades.map(Number).filter(Boolean) : [],
@@ -91,12 +110,15 @@ export function optimizeDedicatedAssignments(config = {}, inputSettings = {}) {
     }
   });
 
+  const subjectPools = normalizeSubjectPools(inputSettings.subjectPools || normalized.subjectPools);
   const settings = {
     ...normalized,
     ...inputSettings,
+    subjectPools,
     planningTeachers: normalizePlanningTeachers(
       inputSettings.planningTeachers || normalized.planningTeachers,
-      inputSettings.teacherCount || normalized.teacherCount
+      inputSettings.teacherCount || normalized.teacherCount,
+      subjectPools
     ),
     teacherTargets: {
       ...normalized.teacherTargets,
@@ -113,7 +135,6 @@ export function optimizeDedicatedAssignments(config = {}, inputSettings = {}) {
     .filter((teacher) => teacher.weeklyHours > 0);
 
   const gradeClasses = normalizeGradeClasses(config.gradeClasses || []);
-  const classCodes = makeAllClassCodes(gradeClasses);
   const totalDedicatedHours = Number(settings.totalDedicatedHours || 0);
   const fixedTotal = teachers.reduce((sum, teacher) => teacher.isFixed ? sum + teacher.targetHours : sum, 0);
   const autoTeachers = teachers.filter((teacher) => !teacher.isFixed);
@@ -129,7 +150,7 @@ export function optimizeDedicatedAssignments(config = {}, inputSettings = {}) {
     const recommended = recommendClassesForTeacher({
       ...teacher,
       targetHours
-    }, gradeClasses, classCodes, settings.options);
+    }, gradeClasses, settings.options, subjectPools);
 
     return {
       ...teacher,
@@ -192,23 +213,27 @@ function normalizeGradeClasses(items) {
   return [...map.entries()].map(([grade, classCount]) => ({ grade, classCount }));
 }
 
-function makeAllClassCodes(gradeClasses) {
+function makeAllClassCodes(gradeClasses, allowedGrades = null) {
+  const allow = Array.isArray(allowedGrades) && allowedGrades.length ? new Set(allowedGrades.map(Number)) : null;
   return gradeClasses.flatMap((item) => {
+    if (allow && !allow.has(Number(item.grade))) return [];
     return Array.from({ length: Number(item.classCount || 0) }, (_unused, index) => `${item.grade}-${index + 1}`);
   });
 }
 
-function recommendClassesForTeacher(teacher, gradeClasses, classCodes, options = {}) {
+function recommendClassesForTeacher(teacher, gradeClasses, options = {}, subjectPools = []) {
   const warnings = [];
+  const subjectGrades = getSubjectGrades(teacher.subject, subjectPools);
   const targetClassCount = teacher.weeklyHours > 0
     ? Math.max(0, Math.round(teacher.targetHours / teacher.weeklyHours))
     : 0;
+  const classCodes = makeAllClassCodes(gradeClasses, subjectGrades);
 
   if (!targetClassCount || !classCodes.length) {
     return { classCodes: [], grades: [], warnings: ['추천할 학급이 없습니다.'] };
   }
 
-  const preferredGrades = getPreferredGrades(teacher, gradeClasses);
+  const preferredGrades = getPreferredGrades(teacher, gradeClasses, subjectGrades);
   const selected = [];
 
   for (const grade of preferredGrades) {
@@ -249,17 +274,24 @@ function recommendClassesForTeacher(teacher, gradeClasses, classCodes, options =
   return { classCodes: unique, grades, warnings };
 }
 
-function getPreferredGrades(teacher, gradeClasses) {
-  const explicitGrades = Array.isArray(teacher.preferredGrades) ? teacher.preferredGrades.filter(Boolean) : [];
-  if (explicitGrades.length) return explicitGrades.concat([1, 2, 3, 4, 5, 6].filter((grade) => !explicitGrades.includes(grade)));
+function getSubjectGrades(subject, subjectPools) {
+  const found = subjectPools.find((item) => item.subject === subject);
+  return found?.grades?.length ? found.grades : [1, 2, 3, 4, 5, 6];
+}
 
-  const currentGrades = [...new Set((teacher.currentClasses || [])
+function getPreferredGrades(teacher, gradeClasses, allowedGrades = null) {
+  const allow = Array.isArray(allowedGrades) && allowedGrades.length ? new Set(allowedGrades.map(Number)) : null;
+  const filterAllowed = (grades) => grades.filter((grade) => !allow || allow.has(Number(grade)));
+  const explicitGrades = Array.isArray(teacher.preferredGrades) ? filterAllowed(teacher.preferredGrades.filter(Boolean)) : [];
+  if (explicitGrades.length) return explicitGrades.concat(filterAllowed([1, 2, 3, 4, 5, 6]).filter((grade) => !explicitGrades.includes(grade)));
+
+  const currentGrades = filterAllowed([...new Set((teacher.currentClasses || [])
     .map((code) => Number(String(code).split('-')[0]))
-    .filter(Boolean))];
+    .filter(Boolean))]);
 
-  if (currentGrades.length) return currentGrades.concat([1, 2, 3, 4, 5, 6].filter((grade) => !currentGrades.includes(grade)));
+  if (currentGrades.length) return currentGrades.concat(filterAllowed([1, 2, 3, 4, 5, 6]).filter((grade) => !currentGrades.includes(grade)));
 
-  const existingGrades = gradeClasses.filter((item) => item.classCount > 0).map((item) => item.grade);
+  const existingGrades = filterAllowed(gradeClasses.filter((item) => item.classCount > 0).map((item) => item.grade));
   const commonOrder = [5, 6, 3, 4, 1, 2];
   return commonOrder.filter((grade) => existingGrades.includes(grade))
     .concat(existingGrades.filter((grade) => !commonOrder.includes(grade)));
@@ -269,6 +301,11 @@ function makeGradeClassCodes(gradeClasses, grade) {
   const item = gradeClasses.find((entry) => entry.grade === grade);
   const count = Number(item?.classCount || 0);
   return Array.from({ length: count }, (_unused, index) => `${grade}-${index + 1}`);
+}
+
+function getExistingGrades(config = {}) {
+  const grades = (config.gradeClasses || []).filter((item) => Number(item.classCount || 0) > 0).map((item) => Number(item.grade));
+  return grades.length ? grades : [1, 2, 3, 4, 5, 6];
 }
 
 function makeSummary(rows, gradeClasses, totalDedicatedHours) {
