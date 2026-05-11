@@ -2,10 +2,12 @@
   margin-top: 20px;
 }
 
-.optimizer-actions {
+.optimizer-actions,
+.optimizer-inline-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .optimizer-area {
@@ -18,7 +20,7 @@
   padding: 20px;
   border-radius: 16px;
   background: rgba(120, 120, 120, 0.08);
-  color: #666;
+  color: #9ca3af;
 }
 
 .optimizer-summary {
@@ -31,6 +33,7 @@
   padding: 14px;
   border-radius: 16px;
   background: rgba(80, 120, 255, 0.08);
+  border: 1px solid rgba(120, 150, 220, 0.18);
 }
 
 .optimizer-card strong {
@@ -55,9 +58,12 @@
 .optimizer-target-input,
 .optimizer-text-input {
   width: 100%;
-  padding: 6px 8px;
+  min-width: 100px;
+  padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(120,120,120,0.2);
+  border: 1px solid rgba(120,150,220,0.35);
+  background: rgba(15, 23, 42, 0.28);
+  color: inherit;
 }
 
 .optimizer-warning {
@@ -65,22 +71,23 @@
   padding: 4px 8px;
   border-radius: 999px;
   background: rgba(255, 160, 0, 0.14);
-  color: #a05a00;
+  color: #f59e0b;
   margin: 2px;
   font-size: 12px;
+  font-weight: 700;
 }
 
 .optimizer-help {
   padding: 14px 16px;
   border-radius: 14px;
   background: rgba(120,120,120,0.08);
-  color: #555;
+  color: #cbd5e1;
   line-height: 1.6;
 }
 
 .optimizer-grade-checks {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -89,8 +96,150 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .optimizer-result-head {
   margin-top: 8px;
+}
+
+.optimizer-teacher-card-list,
+.optimizer-assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+}
+
+.optimizer-teacher-plan-card,
+.optimizer-assignment-card {
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  border-left: 6px solid #3b82f6;
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.42);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.18);
+}
+
+.optimizer-assignment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.optimizer-assignment-head strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.optimizer-assignment-head span {
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.optimizer-assignment-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optimizer-assignment-line {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 110px minmax(220px, 2fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.optimizer-conflict-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.optimizer-grade-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optimizer-grade-block {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.optimizer-grade-block.is-disabled {
+  opacity: 0.35;
+}
+
+.optimizer-grade-block strong {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.optimizer-class-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 8px;
+}
+
+.optimizer-class-chip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: rgba(15, 23, 42, 0.45);
+  color: #e5e7eb;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.optimizer-class-chip input {
+  display: none;
+}
+
+.optimizer-class-chip.is-selected {
+  background: linear-gradient(180deg, #7dd3fc 0%, #3b82f6 55%, #2563eb 100%);
+  color: #07111f;
+  border-color: #93c5fd;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.55);
+}
+
+.optimizer-class-chip.is-conflict {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35), 0 0 14px rgba(239, 68, 68, 0.45);
+}
+
+@media (max-width: 900px) {
+  .optimizer-teacher-card-list,
+  .optimizer-assignment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .optimizer-assignment-line {
+    grid-template-columns: 1fr;
+  }
+
+  .optimizer-grade-block {
+    grid-template-columns: 1fr;
+  }
 }
