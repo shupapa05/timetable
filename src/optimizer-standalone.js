@@ -11,7 +11,7 @@ let settings = null;
 let result = null;
 
 function html(value) {
-  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function boot() {
@@ -252,6 +252,7 @@ function collectSettings(options = {}) {
 async function saveSettings() {
   const saveButton = document.getElementById('optimizerStandaloneSave');
   settings = collectSettings({ keepEmpty: true });
+  config.teacherCount = settings.teacherCount;
   config.optimizerStandalone = { ...(config.optimizerStandalone || {}), ...settings, lastResult: result ? serializeResult(result) : null };
   config.optimizer = { ...(config.optimizer || {}), ...settings, lastResult: result ? serializeResult(result) : null };
   await window.desktopApi.saveConfig(config);
@@ -268,6 +269,7 @@ async function saveSettings() {
 
 async function runOptimizer() {
   settings = collectSettings();
+  config.teacherCount = settings.teacherCount;
   result = optimizeDedicatedAssignments(config, settings);
   result.rows = (result.rows || []).map((row) => ({ ...row, roomName: roomFor(row.teacherCode, row.subject) }));
   config.optimizerStandalone = { ...(config.optimizerStandalone || {}), ...settings, lastResult: serializeResult(result) };
@@ -289,11 +291,15 @@ async function saveEditedResult() {
 
 async function applyToTeachers() {
   if (!result) return alert('먼저 자동배정을 실행하세요.');
+  settings = collectSettings({ keepEmpty: true });
+  config.teacherCount = settings.teacherCount;
   config.teachers = makeTeacherRowsFromResult(result.rows || []);
-  config.optimizerStandalone = { ...(config.optimizerStandalone || {}), ...collectSettings(), lastResult: serializeResult(result) };
+  config.optimizerStandalone = { ...(config.optimizerStandalone || {}), ...settings, lastResult: serializeResult(result) };
+  config.optimizer = { ...(config.optimizer || {}), ...settings, lastResult: serializeResult(result) };
   await window.desktopApi.saveConfig(config);
-  alert('전담배정으로 적용했습니다. 화면을 새로고침합니다.');
-  window.location.reload();
+  window.__optimizerStandaloneAppliedConfig = config;
+  document.dispatchEvent(new CustomEvent('optimizerStandalone:applied', { detail: { config } }));
+  alert('전담배정으로 적용했습니다. 새로고침 없이 저장했습니다.');
 }
 
 function makeTeacherRowsFromResult(rows) {
