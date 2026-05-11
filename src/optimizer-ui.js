@@ -4,6 +4,25 @@ import {
   normalizePlanningTeachers
 } from './timetable-optimizer.js';
 
+const SUBJECT_OPTIONS = [
+  '',
+  '국어',
+  '도덕',
+  '사회',
+  '수학',
+  '과학',
+  '실과',
+  '체육',
+  '음악',
+  '미술',
+  '영어',
+  '바른 생활',
+  '슬기로운 생활',
+  '즐거운 생활',
+  '창의적 체험활동',
+  '기타'
+];
+
 let optimizerResult = null;
 let currentConfig = null;
 let optimizerSettings = null;
@@ -32,6 +51,8 @@ function renderOptimizerSetup(config, settings) {
   const optimizer = settings || normalizeOptimizerSettings(config);
   const teacherCount = Number(optimizer.teacherCount || 0);
   const planningTeachers = normalizePlanningTeachers(optimizer.planningTeachers || [], teacherCount);
+  const fixedCount = planningTeachers.filter((teacher) => Number(teacher.fixedTargetHours || 0) > 0).length;
+  const autoCount = planningTeachers.length - fixedCount;
 
   area.innerHTML = `
     <div class="optimizer-summary">
@@ -39,22 +60,19 @@ function renderOptimizerSetup(config, settings) {
         <span>전담 수</span>
         <strong><input id="optimizerTeacherCount" type="number" min="0" value="${teacherCount}" class="optimizer-target-input"></strong>
       </label>
-      <label class="optimizer-card">
-        <span>전체 전담 목표 시수</span>
-        <strong><input id="optimizerTotalHours" type="number" min="0" value="${optimizer.totalDedicatedHours || 0}" class="optimizer-target-input"></strong>
-      </label>
       <div class="optimizer-card">
         <span>고정 시수 입력</span>
-        <strong>${planningTeachers.filter((teacher) => Number(teacher.fixedTargetHours || 0) > 0).length}명</strong>
+        <strong>${fixedCount}명</strong>
       </div>
       <div class="optimizer-card">
         <span>자동 균등 대상</span>
-        <strong>${planningTeachers.filter((teacher) => Number(teacher.fixedTargetHours || 0) <= 0).length}명</strong>
+        <strong>${autoCount}명</strong>
       </div>
     </div>
 
     <div class="optimizer-help">
-      전담 과목은 입력해도 되고 비워도 됩니다. 고정 총시수를 입력한 전담은 그대로 두고, 빈 전담은 남은 시수를 균등 배분합니다.
+      과목은 선택하지 않아도 됩니다. 고정 총시수를 입력한 전담은 그대로 두고, 빈 전담은 남은 시수를 균등하게 맞추는 방향으로 추천합니다.
+      전체 목표시수는 직접 입력하지 않고, 입력된 조건을 기준으로 자동 계산합니다.
     </div>
 
     <table class="optimizer-table">
@@ -62,24 +80,26 @@ function renderOptimizerSetup(config, settings) {
         <tr>
           <th>전담명</th>
           <th>과목</th>
-          <th>학급당 주당 시수</th>
           <th>고정 총시수</th>
-          <th>선호 학년</th>
+          <th>선택 학년</th>
         </tr>
       </thead>
       <tbody>
         ${planningTeachers.map((teacher, index) => `
           <tr>
             <td><input class="optimizer-text-input" data-opt-field="teacherCode" data-index="${index}" value="${escapeAttr(teacher.teacherCode || `전담${index + 1}`)}"></td>
-            <td><input class="optimizer-text-input" data-opt-field="subject" data-index="${index}" value="${escapeAttr(teacher.subject || '')}" placeholder="비워도 됨"></td>
-            <td><input class="optimizer-target-input" type="number" min="1" data-opt-field="weeklyHours" data-index="${index}" value="${Number(teacher.weeklyHours || 1)}"></td>
+            <td>
+              <select class="optimizer-text-input" data-opt-field="subject" data-index="${index}">
+                ${SUBJECT_OPTIONS.map((subject) => `<option value="${escapeAttr(subject)}" ${subject === (teacher.subject || '') ? 'selected' : ''}>${subject || '선택 안 함'}</option>`).join('')}
+              </select>
+            </td>
             <td><input class="optimizer-target-input" type="number" min="0" data-opt-field="fixedTargetHours" data-index="${index}" value="${Number(teacher.fixedTargetHours || 0) || ''}" placeholder="자동"></td>
             <td>
               <div class="optimizer-grade-checks">
                 ${[1, 2, 3, 4, 5, 6].map((grade) => `
                   <label>
                     <input type="checkbox" data-opt-field="preferredGrades" data-index="${index}" value="${grade}" ${teacher.preferredGrades?.includes(grade) ? 'checked' : ''}>
-                    ${grade}
+                    ${grade}학년
                   </label>
                 `).join('')}
               </div>
@@ -103,7 +123,6 @@ function renderOptimizerSetup(config, settings) {
 
 function collectOptimizerSettingsFromUI() {
   const teacherCount = Number(document.getElementById('optimizerTeacherCount')?.value || optimizerSettings?.teacherCount || 0);
-  const totalDedicatedHours = Number(document.getElementById('optimizerTotalHours')?.value || 0);
   const planningTeachers = normalizePlanningTeachers(optimizerSettings?.planningTeachers || [], teacherCount);
 
   document.querySelectorAll('[data-opt-field]').forEach((input) => {
@@ -119,11 +138,6 @@ function collectOptimizerSettingsFromUI() {
       return;
     }
 
-    if (field === 'weeklyHours') {
-      teacher.weeklyHours = Math.max(1, Number(input.value || 1));
-      return;
-    }
-
     if (field === 'fixedTargetHours') {
       teacher.fixedTargetHours = input.value === '' ? '' : Number(input.value || 0);
       return;
@@ -131,14 +145,24 @@ function collectOptimizerSettingsFromUI() {
 
     teacher[field] = input.value;
     if (field === 'teacherCode') teacher.teacherName = input.value;
+    teacher.weeklyHours = 1;
   });
 
   return {
     ...(optimizerSettings || {}),
     teacherCount,
-    totalDedicatedHours,
+    totalDedicatedHours: calculateAutoTotalHours(planningTeachers),
     planningTeachers
   };
+}
+
+function calculateAutoTotalHours(planningTeachers) {
+  const fixed = planningTeachers.reduce((sum, teacher) => sum + Number(teacher.fixedTargetHours || 0), 0);
+  const autoCount = planningTeachers.filter((teacher) => Number(teacher.fixedTargetHours || 0) <= 0).length;
+  const fixedAverage = planningTeachers.length - autoCount > 0
+    ? Math.round(fixed / Math.max(1, planningTeachers.length - autoCount))
+    : 18;
+  return fixed + autoCount * fixedAverage;
 }
 
 function runOptimizer() {
@@ -157,7 +181,7 @@ function renderOptimizerResult(result) {
     <div class="panel-head optimizer-result-head">
       <div>
         <h2>추천 결과</h2>
-        <p class="panel-note">추천 총시수 ${result.summary.recommendedTotal}시간 / 목표 ${result.totalDedicatedHours}시간</p>
+        <p class="panel-note">추천 총시수 ${result.summary.recommendedTotal}시간 / 자동 목표 ${result.totalDedicatedHours}시간</p>
       </div>
     </div>
 
@@ -205,8 +229,8 @@ async function applyOptimizerResult() {
     teacherName: row.teacherName || row.teacherCode,
     subject: row.subject === '미정' ? '' : row.subject,
     roomName: '',
-    weeklyHours: row.weeklyHours,
-    blockPattern: row.weeklyHours >= 2 ? '2' : '1',
+    weeklyHours: 1,
+    blockPattern: '1',
     assignedClasses: row.recommendedClasses
   }));
 
