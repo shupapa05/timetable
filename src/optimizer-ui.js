@@ -458,7 +458,8 @@ async function applyOptimizerResult() {
   currentConfig.teachers = makeTeacherRowsFromEditedRows(editedRows);
   currentConfig.optimizer = { ...collectOptimizerSettingsFromUI(), lastResult: { rows: editedRows.map((row) => ({ teacherCode: row.teacherCode, subject: row.subject, targetHours: row.targetHours, recommendedHours: row.recommendedHours, recommendedClasses: row.recommendedClasses, grades: row.grades, warnings: row.warnings })) } };
   await window.desktopApi.saveConfig(currentConfig);
-  alert('전담 배정을 적용했습니다. 고급 전담 수정 영역에서 확인할 수 있습니다.');
+  alert('전담 배정을 적용했습니다. 화면을 새로 불러옵니다.');
+  window.location.reload();
 }
 
 function escapeHtml(value) {
