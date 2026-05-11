@@ -62,9 +62,62 @@ function attachResetButton() {
   actions.prepend(button);
 }
 
+function getOptimizerCardSubject(input) {
+  const card = input.closest('.optimizer-assignment-card');
+  const label = card?.querySelector('.optimizer-assignment-head span')?.textContent || '';
+  return label.split('·')[0].trim();
+}
+
+function correctOptimizerConflictDisplay() {
+  const inputs = Array.from(document.querySelectorAll('input[data-result-row]'));
+  if (!inputs.length) return;
+
+  inputs.forEach((input) => {
+    const chip = input.closest('.optimizer-class-chip');
+    if (!chip) return;
+    chip.classList.toggle('is-selected', input.checked);
+    chip.classList.remove('is-conflict');
+  });
+
+  const map = new Map();
+  inputs.filter((input) => input.checked).forEach((input) => {
+    const subject = getOptimizerCardSubject(input);
+    const key = `${subject}__${input.value}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(input);
+  });
+
+  const duplicated = Array.from(map.values()).filter((items) => items.length > 1);
+  duplicated.forEach((items) => {
+    items.forEach((input) => input.closest('.optimizer-class-chip')?.classList.add('is-conflict'));
+  });
+
+  const summary = document.querySelector('.optimizer-conflict-summary');
+  if (summary) {
+    summary.innerHTML = duplicated.length
+      ? `<span class="optimizer-warning">중복 ${duplicated.length}건</span>`
+      : '<span>중복 없음</span>';
+  }
+}
+
+function observeOptimizerConflictDisplay() {
+  const area = document.getElementById('optimizerArea') || document.body;
+  if (!area || area.dataset.optimizerConflictObserver === '1') return;
+  area.dataset.optimizerConflictObserver = '1';
+
+  const observer = new MutationObserver(() => correctOptimizerConflictDisplay());
+  observer.observe(area, { childList: true, subtree: true });
+  setInterval(correctOptimizerConflictDisplay, 800);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   attachResetButton();
+  observeOptimizerConflictDisplay();
+  correctOptimizerConflictDisplay();
   document.querySelectorAll('.tab-button').forEach((button) => {
-    button.addEventListener('click', () => setTimeout(attachResetButton, 50));
+    button.addEventListener('click', () => {
+      setTimeout(attachResetButton, 50);
+      setTimeout(correctOptimizerConflictDisplay, 100);
+    });
   });
 });
