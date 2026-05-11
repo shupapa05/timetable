@@ -176,6 +176,13 @@ function renderOptimizerSetup() {
       renderOptimizerSetup();
     });
   });
+
+  area.querySelectorAll('select[data-opt-field="subject"]').forEach((select) => {
+    select.addEventListener('change', () => {
+      optimizerSettings = collectOptimizerSettingsFromUI();
+      renderOptimizerSetup();
+    });
+  });
 }
 
 function makeTeacherPlanCard(teacher, teacherIndex, subjectPools) {
@@ -184,7 +191,7 @@ function makeTeacherPlanCard(teacher, teacherIndex, subjectPools) {
       <div class="optimizer-assignment-head">
         <div>
           <strong>${escapeHtml(teacher.teacherCode || `전담${teacherIndex + 1}`)}</strong>
-          <span>과목 ${teacher.assignments?.length || 0}개</span>
+          <span>${teacher.assignments?.length || 0}개 과목 배정</span>
         </div>
         <button type="button" data-add-assignment="${teacherIndex}">+ 과목 추가</button>
       </div>
