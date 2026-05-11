@@ -52,10 +52,12 @@
   vertical-align: top;
 }
 
-.optimizer-target-input {
-  width: 72px;
+.optimizer-target-input,
+.optimizer-text-input {
+  width: 100%;
   padding: 6px 8px;
   border-radius: 10px;
+  border: 1px solid rgba(120,120,120,0.2);
 }
 
 .optimizer-warning {
@@ -66,4 +68,29 @@
   color: #a05a00;
   margin: 2px;
   font-size: 12px;
+}
+
+.optimizer-help {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(120,120,120,0.08);
+  color: #555;
+  line-height: 1.6;
+}
+
+.optimizer-grade-checks {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.optimizer-grade-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.optimizer-result-head {
+  margin-top: 8px;
 }
