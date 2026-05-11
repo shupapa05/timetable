@@ -184,7 +184,8 @@ async function saveOptimizerBaseSettings() {
   renderOptimizerBaseSetup();
   renderOptimizerSetup();
   alert('전담 기본 조건을 저장했습니다.');
-}\n
+}
+
 function renderOptimizerSetup() {
   const area = document.getElementById('optimizerArea');
   if (!area) return;
