@@ -1,17 +1,7 @@
-// src/index.html에서 ./optimizer-standalone.js 로 불러와도 작동하도록 연결합니다.
-// 루트 optimizer-standalone.js가 실패해도 전담최적화 탭은 항상 보이게 합니다.
+// 전담최적화 임시 안정화 버전
+// 루트 optimizer-standalone.js에 문법 오류가 있어도 앱이 죽지 않도록 이 파일 단독으로 탭과 안내 화면을 제공합니다.
 
-let rootLoaded = false;
-let rootError = null;
-
-function escapeOptimizerError(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function ensureStandaloneShell() {
+function ensureStandaloneOptimizerTab() {
   const nav = document.querySelector('.app-tabs');
   const app = document.querySelector('.app') || document.body;
   if (!nav || !app) return;
@@ -42,61 +32,50 @@ function ensureStandaloneShell() {
     }
   }
 
-  if (button.dataset.shellBound === '1') return;
-  button.dataset.shellBound = '1';
-  button.addEventListener('click', function onOptimizerTabClick(event) {
+  if (button.dataset.optimizerBound === '1') return;
+  button.dataset.optimizerBound = '1';
+  button.addEventListener('click', function(event) {
     event.preventDefault();
-    document.querySelectorAll('.tab-panel').forEach(function hideOtherPanels(el) {
+
+    document.querySelectorAll('.tab-panel').forEach(function(el) {
       el.style.display = '';
       el.classList.toggle('active', el.id === 'optimizerStandalonePanel');
     });
-    document.querySelectorAll('.app-tabs .tab-button').forEach(function toggleTab(el) {
+
+    document.querySelectorAll('.app-tabs .tab-button').forEach(function(el) {
       el.classList.toggle('active', el.id === 'optimizerStandaloneTab');
     });
-    renderFallbackIfNeeded();
+
+    renderStandaloneOptimizerNotice();
   });
 }
 
-function renderFallbackIfNeeded() {
+function renderStandaloneOptimizerNotice() {
   const area = document.getElementById('optimizerStandaloneArea');
   if (!area) return;
-  if (rootLoaded && !rootError) return;
-
-  const message = rootError
-    ? escapeOptimizerError(rootError.stack || rootError.message || rootError)
-    : '전담최적화 모듈을 불러오는 중입니다. 잠시 후 다시 탭을 눌러주세요.';
 
   area.innerHTML = [
     '<div class="panel" style="padding:18px;">',
-    '<h2 style="margin:0 0 8px;">전담최적화</h2>',
-    '<p class="panel-note" style="margin:0 0 12px;">전담최적화 화면을 불러오지 못했습니다.</p>',
-    '<pre style="white-space:pre-wrap;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-soft);color:var(--text);font-size:12px;">',
-    message,
-    '</pre>',
+    '<div class="panel-head" style="margin:-18px -18px 16px;">',
+    '<h2>전담최적화</h2>',
+    '<p class="panel-note">전담최적화 화면 복구 모드입니다.</p>',
+    '</div>',
+    '<div style="display:grid;gap:12px;">',
+    '<div style="padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel-soft);">',
+    '<strong>현재 상태</strong>',
+    '<p class="panel-note" style="margin:8px 0 0;">루트 optimizer-standalone.js에 남아 있는 문법 오류 때문에 자동배정 본체는 잠시 차단했습니다. 대신 앱 전체가 죽지 않고 탭은 유지됩니다.</p>',
+    '</div>',
+    '<div style="padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel-soft);">',
+    '<strong>다음 조치</strong>',
+    '<p class="panel-note" style="margin:8px 0 0;">이제 루트 파일의 calculateSchoolTotalHours 함수만 고치면 자동배정 화면을 다시 연결할 수 있습니다.</p>',
+    '</div>',
+    '</div>',
     '</div>'
   ].join('');
 }
 
-async function bootStandaloneOptimizer() {
-  ensureStandaloneShell();
-  try {
-    await import('../optimizer-standalone.js');
-    rootLoaded = true;
-    rootError = null;
-    setTimeout(function checkRenderedTab() {
-      ensureStandaloneShell();
-    }, 100);
-  } catch (error) {
-    rootLoaded = false;
-    rootError = error;
-    console.error('[optimizer-standalone wrapper] load failed', error);
-    ensureStandaloneShell();
-    renderFallbackIfNeeded();
-  }
-}
-
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootStandaloneOptimizer);
+  document.addEventListener('DOMContentLoaded', ensureStandaloneOptimizerTab);
 } else {
-  bootStandaloneOptimizer();
+  ensureStandaloneOptimizerTab();
 }
