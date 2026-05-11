@@ -9,28 +9,29 @@
     "dist:portable": "set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win portable"
   },
   "build": {
-  "appId": "kr.school.jeondam-timetable",
-  "productName": "전담시간표프로그램",
-  "icon": "icon.png",
-  "directories": {
-    "output": "dist"
-  },
-  "files": [
-    "main.js",
-    "preload.js",
-    "src/**/*",
-    "package.json",
-    "icon.png"
-  ],
- "win": {
-  "icon": "build/icon.png",
-  "target": [
-    "nsis",
-    "portable"
-  ],
-  "artifactName": "전담시간표프로그램-${version}-${arch}.${ext}",
-  "signAndEditExecutable": false
-},
+    "appId": "kr.school.jeondam-timetable",
+    "productName": "전담시간표프로그램",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json",
+      "!src/*.bak-*",
+      "!src/**/*.bak-*",
+      "!**/desktop.ini",
+      "!**/.DS_Store"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "전담시간표프로그램-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
     "npmRebuild": false
   },
   "dependencies": {
