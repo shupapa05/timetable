@@ -208,7 +208,7 @@ function recommend(row, targetHours, gradeClasses, subjectPools, options = {}, s
   for (const gradeSet of candidateGradeSets) {
     const classCodes = selectClassesFromGradeSet(gradeSet, gradeClasses, targetHours, options, row.subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
     const hours = calculateCodesHours(classCodes, row.subject, subjectPools);
-    const score = scoreCandidate(gradeSet, classCodes, hours, targetHours, options, row.subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
+    const score = scoreCandidate(gradeSet, classCodes, hours, targetHours, gradeClasses, options, row.subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
     if (!best || score > best.score) best = { gradeSet, classCodes, hours, score };
   }
 
@@ -237,14 +237,24 @@ function buildBalancedGradeSets(allowedGrades, gradeClasses, targetHours, option
   const adjacentPairs = [[2, 3], [4, 5]]
     .map((pair) => pair.filter((grade) => existing.includes(grade)))
     .filter((pair) => pair.length === 2);
-  const full = existing.length ? [existing] : [];
+  const triples = buildNeighborTriples(existing);
+  const full = existing.length >= 4 ? [existing] : [];
 
-  const candidates = [...single, ...preferredPairs, ...adjacentPairs, ...full];
+  const candidates = [...single, ...preferredPairs, ...adjacentPairs, ...triples, ...full];
   return candidates
     .map((grades) => [...new Set(grades)].sort((a, b) => a - b))
     .filter((grades, index, arr) => grades.length && arr.findIndex((other) => other.join(',') === grades.join(',')) === index)
     .filter((grades) => countAvailableClasses(grades, gradeClasses, subject, occupiedSubjectClassKeys) > 0)
     .sort((a, b) => scoreGradeSetShape(b, targetHours, gradeClasses, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys) - scoreGradeSetShape(a, targetHours, gradeClasses, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys));
+}
+
+function buildNeighborTriples(existing) {
+  const triples = [];
+  for (let grade = 1; grade <= 4; grade += 1) {
+    const group = [grade, grade + 1, grade + 2];
+    if (group.every((item) => existing.includes(item))) triples.push(group);
+  }
+  return triples;
 }
 
 function scoreGradeSetShape(grades, targetHours, gradeClasses, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys = new Set()) {
@@ -254,31 +264,104 @@ function scoreGradeSetShape(grades, targetHours, gradeClasses, options, subject,
     return sum + availableClassCount * getSubjectGradeHour(subject, grade, subjectPools);
   }, 0);
   const shortage = Math.max(0, targetHours - capacity);
-  if (grades.length === 1) score += 1000;
-  if (grades.length === 2 && isPreferredPair(grades)) score += 750;
-  else if (grades.length === 2 && isAdjacentPair(grades)) score += 550;
-  if (grades.length >= 3) score -= 350 * grades.length;
-  score -= shortage * 200;
-  score -= Math.abs(capacity - targetHours) * 6;
+  const overage = Math.max(0, capacity - targetHours);
+
+  if (grades.length === 1) score += 1200;
+  if (grades.length === 2 && isPreferredPair(grades)) score += 850;
+  else if (grades.length === 2 && isAdjacentPair(grades)) score += 650;
+  if (grades.length >= 3) score -= 500 * grades.length;
+
+  if (capacity >= targetHours) score += 350;
+  score -= shortage * 260;
+  score -= overage * 4;
+  score -= Math.abs(capacity - targetHours) * 8;
   score -= usagePenalty(grades, subject, subjectGradeUsage);
+  score -= mixedHourPenalty(grades, subject, subjectPools);
+
   if (options.lowGradeMoreHours) score += grades.reduce((sum, grade) => sum + (7 - grade) * 5, 0);
   return score;
 }
 
 function selectClassesFromGradeSet(grades, gradeClasses, targetHours, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys = new Set()) {
   if (!targetHours) return [];
-  const selected = [];
-  const gradeOrder = orderGradesForSelection(grades, options, subject, subjectGradeUsage);
-  for (const grade of gradeOrder) {
-    const remaining = targetHours - calculateCodesHours(selected, subject, subjectPools);
-    if (remaining <= 0) break;
-    const codes = makeGradeClassCodes(gradeClasses, grade).filter((code) => !occupiedSubjectClassKeys.has(makeSubjectClassKey(subject, code)) && !selected.includes(code));
-    for (const code of codes) {
-      if (calculateCodesHours(selected, subject, subjectPools) >= targetHours) break;
-      selected.push(code);
-    }
+  const available = makeAvailableClassItems(grades, gradeClasses, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
+  if (!available.length) return [];
+
+  if (grades.length === 1) {
+    return selectGreedyClosest(available, targetHours, subject, subjectPools);
   }
-  return [...new Set(selected)];
+
+  const selected = [];
+  while (selected.length < available.length && calculateCodesHours(selected.map((item) => item.code), subject, subjectPools) < targetHours) {
+    const currentHours = calculateCodesHours(selected.map((item) => item.code), subject, subjectPools);
+    const currentGradeCounts = countSelectedByGrade(selected);
+    const next = available
+      .filter((item) => !selected.some((selectedItem) => selectedItem.code === item.code))
+      .map((item) => ({ item, score: scoreNextClassItem(item, selected, currentHours, currentGradeCounts, targetHours, grades, subject, subjectPools) }))
+      .sort((a, b) => b.score - a.score)[0]?.item;
+    if (!next) break;
+    selected.push(next);
+  }
+
+  return selected.map((item) => item.code);
+}
+
+function makeAvailableClassItems(grades, gradeClasses, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys = new Set()) {
+  return grades.flatMap((grade) => {
+    const hour = getSubjectGradeHour(subject, grade, subjectPools);
+    const usage = subjectGradeUsage.get(`${subject}__${grade}`) || 0;
+    return makeGradeClassCodes(gradeClasses, grade)
+      .filter((code) => !occupiedSubjectClassKeys.has(makeSubjectClassKey(subject, code)))
+      .map((code) => ({ code, grade, hour, usage }));
+  }).sort((a, b) => {
+    if (a.usage !== b.usage) return a.usage - b.usage;
+    if (a.grade !== b.grade) return a.grade - b.grade;
+    return a.code.localeCompare(b.code, 'ko');
+  });
+}
+
+function selectGreedyClosest(available, targetHours, subject, subjectPools) {
+  const selected = [];
+  for (const item of available) {
+    const before = calculateCodesHours(selected.map((selectedItem) => selectedItem.code), subject, subjectPools);
+    if (before >= targetHours) break;
+    const after = before + item.hour;
+    selected.push(item);
+    if (after >= targetHours) break;
+  }
+  return selected.map((item) => item.code);
+}
+
+function scoreNextClassItem(item, selected, currentHours, currentGradeCounts, targetHours, grades, subject, subjectPools) {
+  const afterHours = currentHours + item.hour;
+  const beforeGap = Math.abs(targetHours - currentHours);
+  const afterGap = Math.abs(targetHours - afterHours);
+  const nextCounts = { ...currentGradeCounts, [item.grade]: (currentGradeCounts[item.grade] || 0) + 1 };
+  const balancePenalty = getGradeBalancePenalty(nextCounts, grades);
+  const fillScore = beforeGap - afterGap;
+  const avoidOvershoot = afterHours > targetHours ? (afterHours - targetHours) * 30 : 0;
+  const usagePenaltyValue = item.usage * 4;
+  const sameHourBonus = getSameHourBonus(item.grade, grades, subject, subjectPools);
+
+  return fillScore * 100 - balancePenalty * 25 - avoidOvershoot - usagePenaltyValue + sameHourBonus;
+}
+
+function countSelectedByGrade(selected) {
+  return selected.reduce((map, item) => {
+    map[item.grade] = (map[item.grade] || 0) + 1;
+    return map;
+  }, {});
+}
+
+function getGradeBalancePenalty(counts, grades) {
+  const values = grades.map((grade) => counts[grade] || 0);
+  return Math.max(...values) - Math.min(...values);
+}
+
+function getSameHourBonus(grade, grades, subject, subjectPools) {
+  const hour = getSubjectGradeHour(subject, grade, subjectPools);
+  const sameCount = grades.filter((item) => getSubjectGradeHour(subject, item, subjectPools) === hour).length;
+  return sameCount > 1 ? 20 : 0;
 }
 
 function orderGradesForSelection(grades, options, subject, subjectGradeUsage) {
@@ -291,15 +374,39 @@ function orderGradesForSelection(grades, options, subject, subjectGradeUsage) {
   });
 }
 
-function scoreCandidate(grades, classCodes, hours, targetHours, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys = new Set()) {
-  let score = scoreGradeSetShape(grades, targetHours, normalizeGradeClasses([]), options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
-  score += Math.min(hours, targetHours) * 10;
-  score -= Math.abs(targetHours - hours) * 500;
+function scoreCandidate(grades, classCodes, hours, targetHours, gradeClasses, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys = new Set()) {
+  let score = scoreGradeSetShape(grades, targetHours, gradeClasses, options, subject, subjectGradeUsage, subjectPools, occupiedSubjectClassKeys);
+  const selectedGrades = [...new Set((classCodes || []).map((code) => Number(String(code).split('-')[0])))];
+  const gradeCounts = countClassCodesByGrade(classCodes);
+  const exactBonus = hours === targetHours ? 600 : 0;
+  const underPenalty = hours < targetHours ? (targetHours - hours) * 520 : 0;
+  const overPenalty = hours > targetHours ? (hours - targetHours) * 360 : 0;
+  const balancePenalty = selectedGrades.length >= 2 ? getGradeBalancePenalty(gradeCounts, selectedGrades) * 45 : 0;
+
+  score += Math.min(hours, targetHours) * 12;
+  score += exactBonus;
+  score -= underPenalty;
+  score -= overPenalty;
+  score -= balancePenalty;
+  if (selectedGrades.length >= 3) score -= selectedGrades.length * 400;
   return score;
+}
+
+function countClassCodesByGrade(classCodes = []) {
+  return classCodes.reduce((map, code) => {
+    const grade = Number(String(code).split('-')[0]);
+    map[grade] = (map[grade] || 0) + 1;
+    return map;
+  }, {});
 }
 
 function usagePenalty(grades, subject, subjectGradeUsage) {
   return grades.reduce((sum, grade) => sum + (subjectGradeUsage.get(`${subject}__${grade}`) || 0) * 20, 0);
+}
+
+function mixedHourPenalty(grades, subject, subjectPools) {
+  const hours = [...new Set(grades.map((grade) => getSubjectGradeHour(subject, grade, subjectPools)))];
+  return hours.length > 1 ? (hours.length - 1) * 60 : 0;
 }
 
 function normalizeGradeClasses(items) {
