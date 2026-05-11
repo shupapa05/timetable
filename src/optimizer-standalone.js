@@ -400,9 +400,9 @@ function restoreResult(saved) {
 }
 
 function injectStyle() {
-  if (document.getElementById('optimizer-standalone-style')) return;
-  const style = document.createElement('style');
-  style.id = 'optimizer-standalone-style';
-  style.textContent = '';
-  document.head.appendChild(style);
+  if (document.querySelector('link[href$="optimizer-standalone-polish.css"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './optimizer-standalone-polish.css';
+  document.head.appendChild(link);
 }
