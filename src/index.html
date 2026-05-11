@@ -61,9 +61,10 @@
 
     <nav class="app-tabs" aria-label="화면 전환">
       <button class="tab-button active" type="button" data-tab-target="basicTab">학교 설정</button>
+      <button class="tab-button" type="button" data-tab-target="optimizerTab">전담 최적화</button>
       <button class="tab-button" type="button" data-tab-target="teacherTab">전담 배정</button>
-      <button class="tab-button" type="button" data-tab-target="excludeTab">제외시간</button>
       <button class="tab-button" type="button" data-tab-target="roomAssignTab">특별실 설정</button>
+      <button class="tab-button" type="button" data-tab-target="excludeTab">제외시간</button>
       <button class="tab-button" type="button" data-tab-target="timetableTab">전담 시간표</button>
       <button class="tab-button" type="button" data-tab-target="roomTimetableTab">특별실 시간표</button>
     </nav>
@@ -72,18 +73,43 @@
       <div class="basic-grid">
         <div class="panel">
           <div class="panel-head">
-            <h2>학급 수</h2>
+            <h2>학년별 학급 수</h2>
             <p class="panel-note">학년별 학급 수를 먼저 입력합니다.</p>
           </div>
           <div id="gradeArea" class="grade-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head split">
+            <div>
+              <h2>특별실 목록</h2>
+              <p class="panel-note">과학실, 영어실, 체육관처럼 시간표에 반영할 특별실을 등록합니다.</p>
+            </div>
+            <button id="addRoomBtn" class="small">추가</button>
+          </div>
+          <div id="roomArea" class="stack"></div>
         </div>
       </div>
 
       <div class="panel optimizer-panel">
         <div class="panel-head split">
           <div>
-            <h2>전담 과목·시수 최적화</h2>
-            <p class="panel-note">전담 수와 과목, 고정 시수, 선택 학년을 입력해 전담 배정 초안을 추천합니다.</p>
+            <h2>전담 기본 조건</h2>
+            <p class="panel-note">전담 수와 전담 과목을 먼저 정합니다. 시수 고정과 학년·반 배정은 전담 최적화 탭에서 진행합니다.</p>
+          </div>
+        </div>
+        <div id="optimizerBaseArea" class="optimizer-area">
+          <div class="optimizer-empty">전담 수를 입력하면 전담별 과목 선택표가 표시됩니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="optimizerTab" class="tab-panel">
+      <div class="panel optimizer-panel">
+        <div class="panel-head split">
+          <div>
+            <h2>전담 최적화</h2>
+            <p class="panel-note">전담별 고정 총시수와 선택 학년을 정한 뒤, 자동 추천안 또는 수동 정리로 학년·반 배정을 만듭니다.</p>
           </div>
           <div class="optimizer-actions">
             <button id="optimizerRefreshBtn" type="button">저장된 설정 불러오기</button>
@@ -92,7 +118,7 @@
           </div>
         </div>
         <div id="optimizerArea" class="optimizer-area">
-          <div class="optimizer-empty">전담 수를 입력하면 전담별 과목·시수 입력표가 표시됩니다.</div>
+          <div class="optimizer-empty">학교 설정에서 전담 기본 조건을 입력한 뒤 사용할 수 있습니다.</div>
         </div>
       </div>
     </section>
@@ -102,13 +128,25 @@
         <div class="panel-head split">
           <div>
             <h2>전담 배정</h2>
-            <p class="panel-note">전담별로 과목을 여러 개 추가하고, 과목마다 담당 학급을 선택합니다.</p>
+            <p class="panel-note">최적화 결과를 확인하고, 필요한 경우 반 배정을 직접 수정합니다.</p>
           </div>
         </div>
         <div id="teacherArea" class="teacher-area"></div>
         <div class="teacher-add-footer">
           <button id="addTeacherBtn" class="small" type="button">+ 전담 추가</button>
         </div>
+      </div>
+    </section>
+
+    <section id="roomAssignTab" class="tab-panel">
+      <div class="panel">
+        <div class="panel-head split">
+          <div>
+            <h2>특별실 설정</h2>
+            <p class="panel-note">전담 또는 특별실 수업에서 사용할 특별실 배정을 세부 설정합니다.</p>
+          </div>
+        </div>
+        <div id="roomAssignmentArea" class="settings-block"></div>
       </div>
     </section>
 
@@ -119,29 +157,6 @@
           <p class="panel-note">공통 제외시간과 전담·특별실별 제외시간을 설정합니다.</p>
         </div>
         <div id="excludeArea" class="settings-block"></div>
-      </div>
-    </section>
-
-    <section id="roomAssignTab" class="tab-panel">
-      <div class="panel">
-        <div class="panel-head split">
-          <div>
-            <h2>특별실 목록</h2>
-            <p class="panel-note">과학실, 영어실, 체육관처럼 시간표에 반영할 특별실을 등록합니다.</p>
-          </div>
-          <button id="addRoomBtn" class="small">추가</button>
-        </div>
-        <div id="roomArea" class="stack"></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head split">
-          <div>
-            <h2>특별실 설정</h2>
-            <p class="panel-note">전담과 별도로 특별실을 쓰는 학급을 선택합니다.</p>
-          </div>
-        </div>
-        <div id="roomAssignmentArea" class="settings-block"></div>
       </div>
     </section>
 
